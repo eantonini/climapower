@@ -1,0 +1,28 @@
+,Name,ISO Alpha-3,ISO Alpha-2,Offshore
+0,Austria,AUT,AT,False
+1,Belgium,BEL,BE,True
+2,Bulgaria,BGR,BG,True
+3,Croatia,HRV,HR,True
+4,Cyprus,CYP,CY,True
+5,Czech Republic,CZE,CZ,False
+6,Denmark,DNK,DK,True
+7,Estonia,EST,EE,True
+8,Finland,FIN,FI,True
+9,France,FRA,FR,True
+10,Germany,DEU,DE,True
+11,Greece,GRC,GR,True
+12,Hungary,HUN,HU,False
+13,Ireland,IRL,IE,True
+14,Italy,ITA,IT,True
+15,Latvia,LVA,LV,True
+16,Lithuania,LTU,LT,True
+17,Luxembourg,LUX,LU,False
+18,Malta,MLT,MT,True
+19,Netherlands,NLD,NL,True
+20,Poland,POL,PL,True
+21,Portugal,PRT,PT,True
+22,Romania,ROU,RO,True
+23,Slovakia,SVK,SK,False
+24,Slovenia,SVN,SI,True
+25,Spain,ESP,ES,True
+26,Sweden,SWE,SE,True
