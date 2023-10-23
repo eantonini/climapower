@@ -1,0 +1,26 @@
+name: climate_to_energy_conversion
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - numpy
+  - scipy
+  - xarray
+  - rioxarray
+  - netcdf4
+  - pandas
+  - geopandas
+  - rasterio
+  - shapely
+  - cartopy
+  - atlite
+  - entsoe-py
+  - pytz
+  - pip
+  - pip:
+    - mpi4py
+    - dask
+    - dask-mpi
+    - distributed
