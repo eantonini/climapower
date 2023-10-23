@@ -1,0 +1,11 @@
+name: retrieve_climate_data
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python
+  - numpy
+  - xarray
+  - cdsapi
+  - xesmf
