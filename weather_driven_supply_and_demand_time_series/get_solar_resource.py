@@ -4,7 +4,7 @@ import modules.solar_resource as solar_resource
 
 def main():
     '''
-    Compute and save the aggregated wind capacity factor for a given country and for all the years in the time period of interest.
+    Compute and save the aggregated solar capacity factor for a given country and for all the years in the time period of interest.
     '''
 
     # Get the country of interest.
