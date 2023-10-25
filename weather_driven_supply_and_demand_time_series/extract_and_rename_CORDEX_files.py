@@ -1,3 +1,4 @@
+import os
 import tarfile
 
 import modules.directories as directories
