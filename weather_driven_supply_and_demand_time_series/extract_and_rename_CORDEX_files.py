@@ -12,7 +12,7 @@ CORDEX_variable_name='total_run_off_flux'
 
 if CORDEX_variable_name == 'total_run_off_flux':
     CORDEX_time_resolution ='6hourly'
-else
+else:
     CORDEX_time_resolution ='3hourly'
 
 # For each year, extract the CORDEX data.
@@ -29,7 +29,7 @@ for year in range(start_year,end_year+1):
     # Extract the compressed data file.
     with tarfile.open(original_data_file, 'r:gz') as tar:
         extracted_filename = tar.getnames()[0]
-        tar.extract(filename, path=directories.get_climate_data_path(year, CORDEX_variable_name, CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections', return_folder=True))
+        tar.extract(extracted_filename, path=directories.get_climate_data_path(year, CORDEX_variable_name, CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections', return_folder=True))
     
     # Rename the extracted file.
     os.rename(extracted_filename, new_data_file)
