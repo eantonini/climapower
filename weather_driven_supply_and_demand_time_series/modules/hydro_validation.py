@@ -72,7 +72,7 @@ def validate_hydropower_inflow_time_series(country_info):
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series.to_series().resample('1W').sum()
 
         # Assume mean hydraulic head of all the hydropower plants in the country.
-        mean_hydraulic_head = 50
+        mean_hydraulic_head = 50 # m
 
         # Convert the time series to unit of GWh.
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series*9.81*mean_hydraulic_head/1e9

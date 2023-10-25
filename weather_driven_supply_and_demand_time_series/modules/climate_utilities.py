@@ -300,6 +300,9 @@ def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
         elif variable_name == 'forecast_surface_roughness' and CORDEX_data:
             variable_dataset = xr.open_dataset(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
         
+        elif variable_name == 'total_run_off_flux' and CORDEX_data:
+            variable_dataset = xr.open_dataset(directories.get_climate_data_path(year, variable_name), chunks=settings.chunk_size_lon_lat, CORDEX_time_resolution='6hourly')
+        
         elif variable_name == 'height':
             variable_dataset = xr.open_dataset(settings.climate_data_directory+'/'+'ERA5-geopotential.nc', chunks=settings.chunk_size_lon_lat)
             variable_dataset = variable_dataset/9.80665
