@@ -24,7 +24,7 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
         Full data path with correct climate data filename
     '''
     
-    # Set the climate data folder.
+    # Initialize the climate data path.
     climate_data_path = settings.climate_data_directory + '/'
 
     # Check whether to assign a custom climate data source.
@@ -42,8 +42,8 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
                                   settings.dataset_info['focus_region'] + '__' +
                                   variable_name + '/')
             
-            if return_folder:
-                return climate_data_path
+        if return_folder:
+            return climate_data_path
             
         climate_data_path += (settings.dataset_info['historical_dataset'] + '__' +
                               '{:d}__hourly_'.format(year) + variable_name + '.nc')
@@ -59,8 +59,8 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
                                   settings.dataset_info['regional_climate_model'].upper() + '__' +
                                   variable_name + '/')
             
-            if return_folder:
-                return climate_data_path
+        if return_folder:
+            return climate_data_path
         
         climate_data_path += (settings.dataset_info['future_dataset'] + '__' +
                               '{:d}__'.format(year) + CORDEX_time_resolution + '_' + variable_name + '.nc')

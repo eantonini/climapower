@@ -1,6 +1,7 @@
 import cdsapi
 import os
 
+import modules.settings as settings
 import modules.directories as directories
 
 
@@ -45,12 +46,12 @@ for year in range(2010,2041):
     {
         'format': 'tgz',
         'domain': 'europe',
-        'experiment': representative_concentration_pathway,
+        'experiment': settings.dataset_info['representative_concentration_pathway'],
         'horizontal_resolution': '0_11_degree_x_0_11_degree',
         'temporal_resolution': temporal_resolution,
         'variable': CORDEX_variable_name,
-        'gcm_model': global_climate_model,
-        'rcm_model': regional_climate_model,
+        'gcm_model': settings.dataset_info['global_climate_model'],
+        'rcm_model': settings.dataset_info['regional_climate_model'],
         'ensemble_member': 'r1i1p1',
         'start_year': str(int(year)),
         'end_year': str(int(year+additional_year)),
