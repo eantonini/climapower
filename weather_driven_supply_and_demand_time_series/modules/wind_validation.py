@@ -138,5 +138,5 @@ def validate_wind_capacity_factor_time_series(country_info, offshore):
             
             # Plot the comparison.
             figures.plot_installed_capacity(region_shape, year, 'wind___installed_capacity__' + ('offshore' if offshore else 'onshore'), plant_layout)
-            figures.plot_comparison_in_year(region_shape, year, 'wind___hourly_capacity_factor__' + ('_offshore' if offshore else '_onshore'), compare)
-            figures.plot_comparison_in_period(region_shape, year, 'wind___weekly_capacity_factor__' + ('_offshore' if offshore else '_onshore'), compare)
+            figures.plot_comparison_in_year(region_shape, year, 'wind___weekly_capacity_factor__' + ('_offshore' if offshore else '_onshore'), compare)
+            figures.plot_comparison_in_period(region_shape, year, 'wind___hourly_capacity_factor__' + ('_offshore' if offshore else '_onshore'), compare)

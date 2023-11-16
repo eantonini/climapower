@@ -133,5 +133,5 @@ def validate_solar_capacity_factor_time_series(country_info):
 
             # Plot the comparison.
             figures.plot_installed_capacity(region_shape, year, 'solar___installed_capacity', plant_layout)
-            figures.plot_comparison_in_year(region_shape, year, 'solar___hourly_capacity_factor', compare)
-            figures.plot_comparison_in_period(region_shape, year, 'solar___weekly_capacity_factor', compare)
+            figures.plot_comparison_in_year(region_shape, year, 'solar___weekly_capacity_factor', compare)
+            figures.plot_comparison_in_period(region_shape, year, 'solar___hourly_capacity_factor', compare)
