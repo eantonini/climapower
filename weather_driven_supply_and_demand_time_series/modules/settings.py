@@ -1,7 +1,7 @@
 import os
 
 # Define if the code is running on a local machine or on zeus.
-on_zeus = False
+on_zeus = True
 
 # Set working directory and data directories.
 working_directory = os.getcwd()
@@ -49,7 +49,7 @@ start_year_for_mean_climate_variable = 2000
 end_year_for_mean_climate_variable = 2020
 
 # Set the years over which to perform a comparison against actual data.
-comparison_start_year = 2019
+comparison_start_year = 2015
 comparison_end_year = 2019
 
 # Set the data source against which to compare the results. This is used only for the validation of wind and solar capacity factors.

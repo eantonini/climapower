@@ -107,10 +107,9 @@ def get_opsd_plant_database(country_info, year, resource_type, offshore=False):
         if offshore:
             plant_database = plant_database[plant_database['technology'] == 'Offshore']
         else:
-            plant_database = plant_database[plant_database['technology'] == 'Onshore']
+            plant_database = plant_database[plant_database['technology'] != 'Offshore']
     elif resource_type == 'solar':
         plant_database = plant_database[plant_database['energy_source_level_2'] == 'Solar']
-        plant_database = plant_database[plant_database['technology'] == 'Photovoltaics']
 
     # Set the missing commissioning dates with the beginning of the 20th century.
     plant_database['commissioning_date'] = plant_database['commissioning_date'].fillna('1900-01-01')

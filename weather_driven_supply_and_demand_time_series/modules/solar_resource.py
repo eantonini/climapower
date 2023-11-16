@@ -48,8 +48,11 @@ def get_solar_capacity_factor_time_series(country_info, region_shape, year, alph
         alpha = coefficients.loc['alpha']
         beta = coefficients.loc['beta']
 
-    # Apply calibration coefficients
-    time_series = alpha * time_series + beta
+    # Apply calibration coefficients where the time series is not zero.
+    time_series = time_series.where(time_series < 0.0001, alpha * time_series + beta)
+
+    # Remove negative values.
+    time_series = time_series.where(time_series > 0.0, 0.0)
 
     return time_series
 
