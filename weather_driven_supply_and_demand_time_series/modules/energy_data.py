@@ -409,6 +409,16 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
         
         try:
             actual_total_installed_capacity = get_entsoe_capacity(country_info, year, generation_code)
+
+            if actual_total_installed_capacity < actual_generation_time_series.max():
+
+                print('ENTSO-E installed capacity is lower than the actual generation')
+
+                try:
+                    actual_total_installed_capacity = get_ei_capacity(country_info, year, resource_type)
+                except:
+                    print('EI capacity data retrieval failed')
+                    actual_total_installed_capacity = actual_generation_time_series.max()*1.2
         except:
             print('ENTSO-E capacity data retrieval failed')
 
@@ -416,9 +426,9 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
                 actual_total_installed_capacity = get_ei_capacity(country_info, year, resource_type)
             except:
                 print('EI capacity data retrieval failed')
-                actual_total_installed_capacity = actual_generation_time_series.max()*1.2 # type: ignore
+                actual_total_installed_capacity = actual_generation_time_series.max()*1.2
 
-        actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity # type: ignore
+        actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity
 
     elif settings.validation_data_source == 'open_power_system_database':
 
