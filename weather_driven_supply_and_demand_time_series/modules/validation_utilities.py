@@ -3,7 +3,7 @@ import glob
 import difflib
 import pandas as pd
 
-import modules.settings as settings
+import settings
 import modules.general_utilities as general_utilities
 import modules.directories as directories
 import modules.energy_data as energy_data

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 import modules.geometry as geometry
 import modules.validation_utilities as validation_utilities

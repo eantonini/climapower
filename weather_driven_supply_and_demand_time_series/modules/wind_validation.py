@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy
 
-import modules.settings as settings
+import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.climate_utilities as climate_utilities

@@ -1,4 +1,4 @@
-import modules.settings as settings
+import settings
 
 
 def exclude_regions_based_on_corine(excluder, codes, invert=False, buffer=0, crs=None):

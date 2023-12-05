@@ -1,4 +1,4 @@
-import modules.settings as settings
+import settings
 
 
 def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly', climate_data_source=None, return_folder=False):

@@ -3,12 +3,20 @@ import xarray as xr
 import numpy as np
 
 from entsoe import EntsoePandasClient
+from entsoe.exceptions import NoMatchingDataError
+from modules.exceptions import NotEnoughDataError
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
+import modules.general_utilities as general_utilities
+import modules.energy_utilities as energy_utilities
 
 
-def get_entsoe_generation(country_info, year, generation_code, start=None, end=None):
+# Define the ENTSO-E API key.
+ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+
+
+def get_entsoe_generation(country_info, year, generation_code, start=None, end=None, remove_outliers=True, add_all_missing_timesteps=True):
     '''
     Retrieve the generation time series and the total installed capacity from ENTSO-E.
 
@@ -38,8 +46,7 @@ def get_entsoe_generation(country_info, year, generation_code, start=None, end=N
         Total installed capacity for the given year and country
     '''
     
-    # Define the ENTSO-E API key and the related client.
-    ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+    # Define the ENTSO-E API client.
     client = EntsoePandasClient(api_key=ENTSOE_API_KEY)
 
     # Define the start and end dates for the data retrieval.
@@ -50,27 +57,22 @@ def get_entsoe_generation(country_info, year, generation_code, start=None, end=N
 
     # Retrieve the generation time series.
     entsoe_generation_time_series = client.query_generation(country_info['ISO Alpha-2'], start=start, end=end, psr_type=generation_code)
-    entsoe_generation_time_series = entsoe_generation_time_series.tz_convert(None).squeeze()
+    entsoe_generation_time_series = entsoe_generation_time_series.tz_convert(None)
     
-    # If the generation time series has more than one column, keep only the first one and print a warning.
-    if not isinstance(entsoe_generation_time_series, pd.Series):
-        print('Please check ENTSO-E data retrieval')
-        print('Kept variable: ', entsoe_generation_time_series.iloc[:,0].name)
+    # If the generation time series is a DataFrame, keep only the first column.
+    if isinstance(entsoe_generation_time_series, pd.DataFrame):
+        print('ENTSO-E data is a Pandas DataFrame. ENTSO-E variable extracted:', entsoe_generation_time_series.iloc[:,0].name, '.')
         entsoe_generation_time_series = entsoe_generation_time_series.iloc[:,0]
     
-    # If the generation time series has missing values, linearly interpolate them and print a warning.
-    if len(entsoe_generation_time_series) < len(pd.date_range(start, end, freq='H')[:-1]):
-        print('Filled {:d} missing values'.format(len(pd.date_range(start, end, freq='H')[:-1])-len(entsoe_generation_time_series)))
-        entsoe_generation_time_series = pd.Series(data=entsoe_generation_time_series, index=pd.date_range(start,end, freq='H')[:-1].tz_convert(None))
-        entsoe_generation_time_series = entsoe_generation_time_series.interpolate()
-        
+    # Sanitize the generation time series.
+    entsoe_generation_time_series = energy_utilities.sanitize_time_series(entsoe_generation_time_series, start, end, add_all_missing_timesteps=add_all_missing_timesteps)
+    
     # If the generation time series has a higher temporal resolution than hourly, resample it to hourly.
-    if len(entsoe_generation_time_series) > len(pd.date_range(start, end, freq='H')[:-1]):
-        # The resampling is done by taking the mean of the values in the bins. The offset is set to -0.5H so that the bins are centered on the hour. The bin labels are set to the left bin edge.
-        entsoe_generation_time_series = entsoe_generation_time_series.resample('1H',offset='-0.5H').mean()[:-1]
-
-        # Set the index of the generation time series to the correct hourly time series.
-        entsoe_generation_time_series.index = pd.date_range(start,end, freq='H')[:-1].tz_convert(None)
+    entsoe_generation_time_series = energy_utilities.resample_to_hourly(entsoe_generation_time_series)
+    
+    # Check and remove outliers if the time series has more than 2/3 of the values.
+    if remove_outliers and entsoe_generation_time_series.notnull().sum() > len(entsoe_generation_time_series)*2/3:
+        entsoe_generation_time_series = general_utilities.remove_outliers(entsoe_generation_time_series)
     
     return entsoe_generation_time_series
 
@@ -101,8 +103,7 @@ def get_entsoe_capacity(country_info, year, generation_code):
         Total installed capacity for the given year and country
     '''
     
-    # Define the ENTSO-E API key and the related client.
-    ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+    # Define the ENTSO-E API client.
     client = EntsoePandasClient(api_key=ENTSOE_API_KEY)
 
     # Define the start and end dates for the data retrieval.
@@ -115,7 +116,7 @@ def get_entsoe_capacity(country_info, year, generation_code):
     return entsoe_total_installed_capacity
 
 
-def get_entsoe_reservoir_filling_level(country_info, year, start=None, end=None):
+def get_entsoe_reservoir_filling_level(country_info, year, start=None, end=None, remove_outliers=True, add_all_missing_timesteps=True):
     '''
     Retrieve the hydropower generation time series from ENTSO-E.
 
@@ -136,8 +137,7 @@ def get_entsoe_reservoir_filling_level(country_info, year, start=None, end=None)
         Time series of the hydropower generation for the given year and country
     '''
 
-    # Define the ENTSO-E API key and the related client.
-    ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+    # Define the ENTSO-E API key client.
     client = EntsoePandasClient(api_key=ENTSOE_API_KEY)
 
     # Define the start and end dates for the data retrieval.
@@ -148,13 +148,22 @@ def get_entsoe_reservoir_filling_level(country_info, year, start=None, end=None)
 
     # Retrieve the hydropower generation (MW) and reservoir filling level (MWh) time series.
     entsoe_reservoir_filling_level_time_series = client.query_aggregate_water_reservoirs_and_hydro_storage(country_info['ISO Alpha-2'], start=start, end=end)
-    entsoe_reservoir_filling_level_time_series = entsoe_reservoir_filling_level_time_series.tz_convert(None).squeeze()
+    entsoe_reservoir_filling_level_time_series = entsoe_reservoir_filling_level_time_series.tz_convert(None)
 
-    # If the time series have more than one column, keep only the first one and print a warning.
-    if not isinstance(entsoe_reservoir_filling_level_time_series, pd.Series):
-        print('Please check ENTSO-E data retrieval')
-        print('Kept variable: ', entsoe_reservoir_filling_level_time_series.iloc[:,0].name)
+    # If the time series is a DataFrame, keep only the first column.
+    if isinstance(entsoe_reservoir_filling_level_time_series, pd.DataFrame):
+        print('ENTSO-E data is a Pandas DataFrame. ENTSO-E variable extracted:', entsoe_reservoir_filling_level_time_series.iloc[:,0].name, '.')
         entsoe_reservoir_filling_level_time_series = entsoe_reservoir_filling_level_time_series.iloc[:,0]
+
+    # Get a clean time index for the time series.
+    entsoe_reservoir_filling_level_time_series.index = energy_utilities.get_weekly_time_index(entsoe_reservoir_filling_level_time_series, start, end, keep_missing_timesteps=True)
+    
+    # Sanitize the reservoir filling level time series.
+    entsoe_reservoir_filling_level_time_series = energy_utilities.sanitize_time_series(entsoe_reservoir_filling_level_time_series, start, end, add_all_missing_timesteps=add_all_missing_timesteps)
+
+    # Check and remove outliers if the time series has more than 2/3 of the values.
+    if remove_outliers and entsoe_reservoir_filling_level_time_series.notnull().sum() > len(entsoe_reservoir_filling_level_time_series)*2/3:
+        entsoe_reservoir_filling_level_time_series = general_utilities.remove_outliers(entsoe_reservoir_filling_level_time_series)
 
     return entsoe_reservoir_filling_level_time_series
 
@@ -181,37 +190,65 @@ def get_entsoe_hydropower_inflow(country_info, year):
     '''
 
     # Define the start and end dates for the data retrieval.
-    # Extend the time period by 7 days to avoid missing values at the beginning and at the end of the year because hydropower reservoir filling level have weekly values.
+    # Extend the time period by 14 days to avoid missing values at the beginning and at the end of the year because hydropower reservoir filling level have weekly values.
     # The maximum retrival period is one year, so the time period is split in three parts: the week before the year of interest, the year of interest, and the week after the year of interest.
-    start_week_before = pd.Timestamp(str(year), tz='UTC') - pd.Timedelta(days=7)
-    end_week_before = pd.Timestamp(str(year), tz='UTC')
+    start_previous_period = pd.Timestamp(str(year), tz='UTC') - pd.Timedelta(days=14)
+    end_previous_period = pd.Timestamp(str(year), tz='UTC') + pd.Timedelta(days=7)
     start_year = pd.Timestamp(str(year), tz='UTC')
     end_year = pd.Timestamp(str(year+1), tz='UTC')
-    start_week_after = pd.Timestamp(str(year+1), tz='UTC')
-    end_week_after = pd.Timestamp(str(year+1), tz='UTC') + pd.Timedelta(days=7)
+    start_following_period = pd.Timestamp(str(year+1), tz='UTC') - pd.Timedelta(days=7)
+    end_following_period = pd.Timestamp(str(year+1), tz='UTC') + pd.Timedelta(days=14)
 
     # Set the ENTSO-E generation code.
     generation_code = 'B12' # B10 Hydro Pumped Storage, B11 Hydro Run-of-river and poundage, or B12 Hydro Water Reservoir
 
-    # Retrieve the hydropower generation (MW) time series.
-    entsoe_hydropower_generation_time_series_week_before = get_entsoe_generation(country_info, year, generation_code, start=start_week_before, end=end_week_before)
-    entsoe_hydropower_generation_time_series_year = get_entsoe_generation(country_info, year, generation_code, start=start_year, end=end_year)
-    entsoe_hydropower_generation_time_series_week_after = get_entsoe_generation(country_info, year, generation_code, start=start_week_after, end=end_week_after)
-    
+    # Retrieve the hydropower generation (MW) time series for the year of interest and a buffer of 2 weeks before and after.
+    entsoe_hydropower_generation_time_series = get_entsoe_generation(country_info, year, generation_code)
+    try:
+        entsoe_hydropower_generation_time_series_previous_period = get_entsoe_generation(country_info, year, generation_code, start=start_previous_period, end=end_previous_period, add_all_missing_timesteps=False)
+    except (NoMatchingDataError, NotEnoughDataError):
+        print('No hydropower generation data available for the previous period')
+        entsoe_hydropower_generation_time_series_previous_period = pd.Series(dtype=float)
+    try:
+        entsoe_hydropower_generation_time_series_next_period = get_entsoe_generation(country_info, year, generation_code, start=start_following_period, end=end_following_period, add_all_missing_timesteps=False)
+    except (NoMatchingDataError, NotEnoughDataError):
+        print('No hydropower generation data available for the next period')
+        entsoe_hydropower_generation_time_series_next_period = pd.Series(dtype=float)
+
     # Combine the hydropower generation time series.
-    entsoe_hydropower_generation_time_series = pd.concat([entsoe_hydropower_generation_time_series_week_before, entsoe_hydropower_generation_time_series_year, entsoe_hydropower_generation_time_series_week_after])
+    entsoe_hydropower_generation_time_series = pd.concat([entsoe_hydropower_generation_time_series_previous_period, entsoe_hydropower_generation_time_series, entsoe_hydropower_generation_time_series_next_period])
+
+    # Drop duplicate values.
+    entsoe_hydropower_generation_time_series = entsoe_hydropower_generation_time_series[~entsoe_hydropower_generation_time_series.index.duplicated(keep='first')]
 
     # Downsample the hydropower generation time series to weekly resolution. Weekly bins start on Monday and end on Sunday. The label of the bins is set to the right bin edge.
     entsoe_weekly_hydropower_generation_time_series = entsoe_hydropower_generation_time_series.resample('1W').sum()
 
-    # Retrieve the reservoir filling level (MWh) time series.
-    entsoe_reservoir_filling_level_time_series_week_before = get_entsoe_reservoir_filling_level(country_info, year, start=start_week_before, end=end_week_before)
-    entsoe_reservoir_filling_level_time_series_year = get_entsoe_reservoir_filling_level(country_info, year, start=start_year, end=end_year)
-    entsoe_reservoir_filling_level_time_series_week_after = get_entsoe_reservoir_filling_level(country_info, year, start=start_week_after, end=end_week_after)
+    # Adjust the ends of the time series.
+    entsoe_weekly_hydropower_generation_time_series = energy_utilities.adjust_time_series_ends(entsoe_weekly_hydropower_generation_time_series, year, start_previous_period, start_year, end_year, end_following_period)
+
+    # Retrieve the reservoir filling level (MWh) time series for the year of interest and a buffer of 2 weeks before and after.
+    entsoe_reservoir_filling_level_time_series = get_entsoe_reservoir_filling_level(country_info, year, remove_outliers=False)
+    try:
+        entsoe_reservoir_filling_level_time_series_previous_period = get_entsoe_reservoir_filling_level(country_info, year, start=start_previous_period, end=end_previous_period, remove_outliers=False, add_all_missing_timesteps=False)
+    except (NoMatchingDataError, NotEnoughDataError):
+        print('No hydropower reservoir filling level data available for the previous period')
+        entsoe_reservoir_filling_level_time_series_previous_period = pd.Series(dtype=float)
+    try:
+        entsoe_reservoir_filling_level_time_series_next_period = get_entsoe_reservoir_filling_level(country_info, year, start=start_following_period, end=end_following_period, remove_outliers=False, add_all_missing_timesteps=False)
+    except (NoMatchingDataError, NotEnoughDataError):
+        print('No hydropower reservoir filling level data available for the next period')
+        entsoe_reservoir_filling_level_time_series_next_period = pd.Series(dtype=float)
 
     # Combine the reservoir filling level time series.
-    entsoe_reservoir_filling_level_time_series = pd.concat([entsoe_reservoir_filling_level_time_series_week_before, entsoe_reservoir_filling_level_time_series_year, entsoe_reservoir_filling_level_time_series_week_after]).drop_duplicates()
-    
+    entsoe_reservoir_filling_level_time_series = pd.concat([entsoe_reservoir_filling_level_time_series_previous_period, entsoe_reservoir_filling_level_time_series, entsoe_reservoir_filling_level_time_series_next_period])
+
+    # Drop duplicate values.
+    entsoe_reservoir_filling_level_time_series = entsoe_reservoir_filling_level_time_series[~entsoe_reservoir_filling_level_time_series.index.duplicated(keep='first')]
+
+    # Adjust the ends of the time series.
+    entsoe_reservoir_filling_level_time_series = energy_utilities.adjust_time_series_ends(entsoe_reservoir_filling_level_time_series, year, start_previous_period, start_year, end_year, end_following_period)
+
     # Calculate the hydropower inflow time series using an energy balance. The hydropower inflow is the difference between the reservoir filling level at the end of the week and the reservoir filling level at the beginning of the week plus the hydropower generation during the week.
     weekly_hydropower_inflow_time_series = entsoe_reservoir_filling_level_time_series[1:].values - entsoe_reservoir_filling_level_time_series[:-1].values + entsoe_weekly_hydropower_generation_time_series[:-1].values # type: ignore
     weekly_hydropower_inflow_time_series = pd.Series(data=weekly_hydropower_inflow_time_series, index=entsoe_weekly_hydropower_generation_time_series.index[:-1], name='Hydropower inflow')
@@ -219,10 +256,13 @@ def get_entsoe_hydropower_inflow(country_info, year):
     # Remove negative values.
     weekly_hydropower_inflow_time_series[weekly_hydropower_inflow_time_series<0] = 0
 
+    # Keep only values where the index is in the current year.
+    weekly_hydropower_inflow_time_series = weekly_hydropower_inflow_time_series[weekly_hydropower_inflow_time_series.index.year==year]
+
     return weekly_hydropower_inflow_time_series
 
 
-def get_opsd_generation_and_capacity(country_info, year, resource_type, offshore=False):
+def get_opsd_generation_and_capacity(country_info, year, resource_type, offshore=False, remove_outliers=True):
     '''
     Retrieve wind and solar generation time series and the total installed capacity from the Open Power System Database.
 
@@ -260,15 +300,30 @@ def get_opsd_generation_and_capacity(country_info, year, resource_type, offshore
 
     # Keep only the generation time series for the given year and country.
     open_power_system_database = open_power_system_database[(open_power_system_database.index >= str(year)) & (open_power_system_database.index < str(year+1))]
-    generation_column_name = country_info['ISO Alpha-2']+'_'+resource_type+'_'+('offshore_' if (resource_type == 'wind' and offshore) else ('onshore_' if (resource_type == 'wind' and not offshore) else ''))+'generation_actual'
-    opsd_generation_time_series = open_power_system_database[generation_column_name]
+
+    # Check if the generation time series is available for the given year and country.
+    try:
+        generation_column_name = country_info['ISO Alpha-2']+'_'+resource_type+'_'+('offshore_' if (resource_type == 'wind' and offshore) else ('onshore_' if (resource_type == 'wind' and not offshore) else ''))+'generation_actual'
+        opsd_generation_time_series = open_power_system_database[generation_column_name]
+
+        # Sanitize the generation time series.
+        opsd_generation_time_series = energy_utilities.sanitize_time_series(opsd_generation_time_series, pd.Timestamp(str(year), tz='UTC'), pd.Timestamp(str(year+1), tz='UTC'))
+
+        # Check and remove outliers if the time series has more than 2/3 of the values.
+        if remove_outliers and opsd_generation_time_series.notnull().sum() > len(opsd_generation_time_series)*2/3:
+            opsd_generation_time_series = general_utilities.remove_outliers(opsd_generation_time_series)
+    
+    except (KeyError, NotEnoughDataError):
+        print('No OPSD ' + ('offshore ' if (resource_type == 'wind' and offshore) else ('onshore ' if (resource_type == 'wind' and not offshore) else '')) + resource_type + ' generation data available for the given year and country')
+        opsd_generation_time_series = None
     
     # Check if the total installed capacity is available for the given year and country. 
     try:
         capacity_column_name = country_info['ISO Alpha-2']+'_'+resource_type+'_'+('offshore_' if (resource_type == 'wind' and offshore) else ('onshore_' if (resource_type == 'wind' and not offshore) else ''))+'capacity'
         opsd_total_installed_capacity = open_power_system_database[capacity_column_name]
 
-    except:
+    except (KeyError, NotEnoughDataError):
+        print('No OPSD ' + ('offshore ' if (resource_type == 'wind' and offshore) else ('onshore ' if (resource_type == 'wind' and not offshore) else '')) + resource_type + ' capacity data available for the given year and country')
         opsd_total_installed_capacity = None
     
     return opsd_generation_time_series, opsd_total_installed_capacity

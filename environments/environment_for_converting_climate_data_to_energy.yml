@@ -17,6 +17,7 @@ dependencies:
   - cartopy
   - atlite
   - entsoe-py
+  - eurostat
   - pytz
   - pip
   - pip:

@@ -3,7 +3,7 @@ import xarray as xr
 
 import atlite
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 import modules.climate_utilities as climate_utilities
 

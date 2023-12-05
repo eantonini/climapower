@@ -1,12 +1,14 @@
 import os
 import argparse
+import numpy as np
 import xarray as xr
 import pandas as pd
 import pytz
 from datetime import datetime
 from dask.diagnostics.progress import ProgressBar
+import matplotlib.pyplot as plt
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 
 
@@ -57,6 +59,40 @@ def read_command_line_arguments():
     country_info = country_info_list.loc[country_info_list['Name']==args.country_name].squeeze()
 
     return country_info
+
+
+def write_to_log_file(filename, message, new_file=False, write_time=False):
+    '''
+    Write a message to a log file.
+
+    Parameters
+    ----------
+    filename : str
+        Name of the log file without the extension
+    message : str
+        Message to write to the log file
+    new_file : bool, optional
+        If True, the log file is created
+    write_time : bool, optional
+        If True, the current time is written before the message
+    '''
+    
+    # Create the log file if it does not exist.
+    if not os.path.exists(settings.working_directory+'/log_files'):
+        os.makedirs(settings.working_directory+'/log_files')
+    
+    # Determine whether to append or overwrite the log file.
+    mode = 'w' if new_file else 'a'
+
+    # Write the message to the log file.
+    with open(settings.working_directory+'/log_files/'+filename+'.log', mode) as output_file:
+        if write_time:
+            # Write the current time to the log file.
+            now = datetime.now()
+            prefix_time = now.strftime('%H:%M:%S') + ' - '
+            output_file.write(prefix_time + message)
+        else:
+            output_file.write(message)
 
 
 def aggregate_time_series(time_series, weights):
@@ -147,3 +183,144 @@ def calculate_hour_shift(country_info):
     hour_shift = (datetime2 - datetime1).total_seconds()/3600
 
     return hour_shift
+
+
+def get_time_series_frequency(time_series):
+    '''
+    Get the frequency of a time series.
+
+    Parameters
+    ----------
+    time_series : pandas.Series
+        Time series of interest
+
+    Returns
+    -------
+    frequency : str
+        Frequency of the time series
+    '''
+
+    # Get the frequency of the time series.
+    if time_series.index.freqstr != None:
+        frequency = time_series.index.freqstr
+    else:
+        time_resolution_in_minutes = time_series.index.to_series().diff().dt.total_seconds().div(60).median()
+        if time_resolution_in_minutes == 60*24*7:
+            frequency = 'W'
+        elif time_resolution_in_minutes == 60:
+            frequency = 'H'
+        elif time_resolution_in_minutes == 30:
+            frequency = '30T'
+        elif time_resolution_in_minutes == 15:
+            frequency = '15T'
+        else:
+            frequency = 'W'
+            print('The time series frequency is not recognized. The frequency is set to weekly.')
+        
+    return frequency
+
+
+def linearly_interpolate(time_series, consecutive_missing_values=1):
+    '''
+    Linearly interpolate the missing values in a time series only if they are isolated or in couples.
+    
+    Parameters
+    ----------
+    time_series : pandas.Series
+        Time series of interest
+    consecutive_missing_values : int, optional
+        Threshold of consecutive missing values to interpolate. It can be 1 (default) or 2.
+    
+    Returns
+    -------
+    time_series : pandas.Series
+        Time series of interest with the missing values interpolated
+    '''
+
+    # Get the number of original non-null values.
+    original_non_null_values = time_series.notnull().sum()
+
+    # Create a copy of the time series.
+    time_series_copy = time_series.copy()
+
+    # Interpolate the missing values.
+    if consecutive_missing_values == 1:
+
+        # Where there is a NaN value, replace it with the average of the previous and next values. This takes care of replacing isolated NaN values.
+        time_series_copy[time_series.isnull()] = (time_series.shift(-1) + time_series.shift(1))/2
+
+        interpolated_values = time_series_copy.notnull().sum()-original_non_null_values
+
+        if interpolated_values > 0:
+            
+            # Print the number of interpolated values.
+            print('Interpolated {:d} isolated missing values.'.format(interpolated_values))
+    
+    elif consecutive_missing_values == 2:
+
+        # Find the first of the two consecutive NaN values that are within two non-NaN values.
+        first_nan = (time_series.shift(-2).notnull()) & (time_series.shift(-1).isnull()) & (time_series.isnull()) & (time_series.shift(1).notnull())
+
+        # Find the second of the two consecutive NaN values that are within two non-NaN values.
+        second_nan = (time_series.shift(-1).notnull()) & (time_series.isnull()) & (time_series.shift(1).isnull()) & (time_series.shift(2).notnull())
+
+        # Interpolate the missing values.
+        time_series_copy[first_nan] = time_series.shift(1) + (time_series.shift(-2)-time_series.shift(1))*1/3
+        time_series_copy[second_nan] = time_series.shift(2) + (time_series.shift(-1)-time_series.shift(2))*2/3
+    
+        interpolated_values = int((time_series_copy.notnull().sum()-original_non_null_values)/2)
+
+        if interpolated_values > 0:
+        
+            # Print the number of interpolated values.
+            print('Interpolated {:d} couples of missing values.'.format(interpolated_values))
+    
+    return time_series_copy
+
+
+def remove_outliers(time_series):
+    '''
+    Remove the outliers from the time series.
+
+    Parameters
+    ----------
+    time_series : xarray.DataArray
+        Time series (time) where to check for outliers
+
+    Returns
+    -------
+    time_series : xarray.DataArray
+        Time series (time) where the outliers have been removed
+    '''
+
+    # Calculate maximum value.
+    max_value = time_series.quantile(0.99)*1.5
+
+    # Make a copy of the time series.
+    original_time_series = time_series.copy()
+
+    # Assign -1 to NaN values.
+    time_series = time_series.where(time_series.notnull(), -1)
+
+    # Assign NaN to the outliers.
+    time_series = time_series.where(time_series <= max_value, np.nan)
+    
+    # Check if there are NaN values.
+    if time_series.isnull().any():
+
+        # Count the number of NaN values.
+        number_of_outliers = time_series.isnull().sum()
+
+        # Interpolate the time series.
+        time_series = time_series.interpolate()
+
+        fig, ax = plt.subplots()
+        original_time_series.plot(ax=ax, color='red', label='Original time series')
+        time_series.where(time_series >= 0, np.nan).plot(ax=ax, color='green', label='Interpolated time series')
+
+        print('Removed '+ str(number_of_outliers) +' outliers by interpolation.')
+
+    # Assign NaN to the negative values to recover the missing values in the original time series.
+    time_series = time_series.where(time_series >= 0, np.nan)
+
+    return time_series

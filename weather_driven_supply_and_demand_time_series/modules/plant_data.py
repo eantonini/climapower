@@ -1,6 +1,6 @@
 import pandas as pd
 
-import modules.settings as settings
+import settings
 
 
 def get_gem_plant_database(country_info, year, resource_type, offshore=False):

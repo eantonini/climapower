@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from rasterio.plot import show
 
-import modules.settings as settings
+import settings
 import modules.climate_utilities as climate_utilities
 
 

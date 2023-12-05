@@ -3,7 +3,7 @@ import xarray as xr
 
 import atlite
 
-import modules.settings as settings
+import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.geospatial_utilities as geospatial_utilities

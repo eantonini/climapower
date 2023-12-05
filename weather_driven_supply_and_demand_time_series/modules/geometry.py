@@ -5,7 +5,7 @@ import geopandas as gpd
 from shapely.geometry import Polygon
 import cartopy.io.shapereader as shpreader
 
-import modules.settings as settings
+import settings
 import modules.basic_figures as figures
 
 

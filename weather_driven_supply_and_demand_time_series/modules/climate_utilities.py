@@ -4,7 +4,7 @@ import pandas as pd
 
 import atlite
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 
 
