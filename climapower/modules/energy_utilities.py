@@ -164,7 +164,7 @@ def add_missing_timesteps(time_series, start, end, add_all_missing_timesteps=Tru
     return time_series
 
 
-def sanitize_time_series(time_series, start, end, add_all_missing_timesteps=True):
+def sanitize_time_series(time_series, start, end, linearly_interpolate=True, add_all_missing_timesteps=True):
     '''
     Sanitize the time series retrieved from ENTSO-E.
     
@@ -191,11 +191,18 @@ def sanitize_time_series(time_series, start, end, add_all_missing_timesteps=True
     # Check if the time series has missing timesteps and add them.
     time_series = add_missing_timesteps(time_series, start, end, add_all_missing_timesteps=add_all_missing_timesteps)
     
-    # Linearly interpolate only where there is an isolated missing value.
-    time_series = general_utilities.linearly_interpolate(time_series, consecutive_missing_values=1)
+    if linearly_interpolate:
+        # Linearly interpolate only where there is an isolated missing value.
+        time_series = general_utilities.linearly_interpolate(time_series, consecutive_missing_values=1)
 
-    # Linearly interpolate only where there are two consecutive missing values.
-    time_series = general_utilities.linearly_interpolate(time_series, consecutive_missing_values=2)
+        # Linearly interpolate only where there are two consecutive missing values.
+        time_series = general_utilities.linearly_interpolate(time_series, consecutive_missing_values=2)
+
+    # If the time series still has NaN values, set them to zero.
+    nan_values = time_series.isnull().sum()
+    if nan_values > 0:
+        time_series = time_series.fillna(0)
+        print('Set {:d} NaN values to zero.'.format(nan_values))
 
     return time_series
 

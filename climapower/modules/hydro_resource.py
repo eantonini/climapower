@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import xarray as xr
 
@@ -51,12 +52,14 @@ def compute_aggregated_hydropower_inflow(country_info):
     plants = pd.read_csv(settings.energy_data_directory+'/jrc-hydro-power-plant-database.csv')
     plants = plants.loc[plants['country_code'] == country_info['ISO Alpha-2']]
 
-    # Select only conventional hydropower plants (no pumped storage or run-of-river).
-    plants = plants.loc[plants['type'] == 'HDAM']
+    # Select the type of plants. It can be 'HDAM' (hydro water reservois), 'HPHS' (hydro pumped storage), or 'HROR' (hydro run-of-river).
+    # Water reservoirs and pumped storage hydro power plants are aggregated together because of the inflow into the reservoirs.
+    # plants = plants.loc[np.logical_or(plants['type'] == 'HDAM', plants['type'] == 'HPHS')]
+    plants = plants.loc[plants['type'] == 'HROR']
 
     # Read the hydro basins in Europe and select the ones that are upstream of the hydro power plants in the country of interest.
     all_basins = settings.energy_data_directory+'/hybas_eu_lev01-12_v1c/hybas_eu_lev08_v1c.shp'
-    basins_of_interests = atlite.hydro.determine_basins(plants, all_basins) # type: ignore
+    basins_of_interests = atlite.hydro.determine_basins(plants, all_basins)
 
     # Get the shape of the country of interest.
     region_shape = geometry.get_geopandas_region(country_info)
@@ -76,11 +79,11 @@ def compute_aggregated_hydropower_inflow(country_info):
         aggregated_runoff_per_basin = aggregated_runoff_per_basin.to_array(dim='hid')
         aggregated_runoff_per_basin['hid'] = aggregated_runoff_per_basin['hid'].values.astype('int')
         
-        # The runoff is in units of m per hour. It should be multiplied by the water density and the basin area to convert to kg per hour.
+        # The runoff is in units of m. It should be multiplied by the water density and the basin area to convert to kg.
         aggregated_runoff_per_basin *= 1000.0*xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)
 
         # Aggregate the time series of the runoff for each basin to the belonging power plant. The result is an xarray DataArray with one time series for each plant.
-        aggregated_inflow_per_plant = atlite.hydro.shift_and_aggregate_runoff_for_plants(basins_of_interests, aggregated_runoff_per_basin, flowspeed=1) # type: ignore
+        aggregated_inflow_per_plant = atlite.hydro.shift_and_aggregate_runoff_for_plants(basins_of_interests, aggregated_runoff_per_basin, flowspeed=1)
         
         # Sum the inflow time series of all the plants.
         aggregated_inflow = aggregated_inflow_per_plant.sum(dim='plant')
@@ -100,4 +103,5 @@ def compute_aggregated_hydropower_inflow(country_info):
         aggregated_inflow = aggregated_inflow.assign_attrs(units='kg/h', description="Mass flow rate of water into the reservoirs")
 
         # Save the aggregated inflow.
-        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__conventional')
+        # general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage')
+        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__run_of_river')

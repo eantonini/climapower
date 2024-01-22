@@ -5,7 +5,7 @@ from modules.exceptions import NotEnoughDataError
 
 import settings
 import modules.general_utilities as general_utilities
-import modules.energy_data as energy_data
+import modules.energy_supply_data as energy_data
 
 
 def main():
