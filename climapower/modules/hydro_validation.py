@@ -73,8 +73,8 @@ def validate_hydropower_inflow_time_series(country_info):
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series.to_series().resample('1W').sum()
 
         # Assume mean hydraulic head of all the hydropower plants in the country.
-        mean_hydraulic_head = 50 # m
-        # mean_hydraulic_head = 10 # m
+        mean_hydraulic_head = 50 # m - For conventional hydropower plants
+        # mean_hydraulic_head = 10 # m - For run-of-river hydropower plants
 
         # Convert the time series to unit of GWh.
         j_to_gwh = 1/3.6e12
@@ -95,7 +95,7 @@ def validate_hydropower_inflow_time_series(country_info):
 
             # Save the retain factor.
             validation_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info='__conventional_and_pumped_storage')
-            validation_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info='__run_of_river')
+            # validation_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info='__run_of_river')
         
         if settings.make_plots:
 
@@ -105,7 +105,7 @@ def validate_hydropower_inflow_time_series(country_info):
 
             # Add the calibrated time series if calculated.
             if settings.calibrate:
-                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_hydropower_inflow_time_series.values, index=aggregated_calibrated_hydropower_inflow_time_series.index, columns=['calibrated'])) # type: ignore
+                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_hydropower_inflow_time_series.values, index=aggregated_calibrated_hydropower_inflow_time_series.index, columns=['calibrated']))
 
             compare = compare.loc[compare.index.year == year]
 
