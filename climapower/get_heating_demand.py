@@ -1,3 +1,5 @@
+import pandas as pd
+
 import modules.general_utilities as general_utilities
 import modules.heating_demand as heating_demand
 
