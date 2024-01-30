@@ -40,8 +40,8 @@ chunk_size_lon_lat = {'longitude': 10, 'latitude': 10}
 chunk_size_x_y = {'x': 10, 'y': 10}
 
 # Set the years over which to aggregate climate data.
-aggregation_start_year = 2019
-aggregation_end_year = 2019
+aggregation_start_year = 1940
+aggregation_end_year = 2022
 climate_data_source = 'historical' # 'historical' or 'projections'
 
 # Set the years over which to calculate the mean climate variables used to estimate the capacity factors of wind and solar.
@@ -53,7 +53,7 @@ validation_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'e
 
 # Decide whether to calibrate the results. The calibration is implemented for wind capacity factors and hydropower inflow time series.
 calibration_folder = working_directory + '/calibration_results'
-calibrate = True
+calibrate = False
 if calibrate:
     if not os.path.exists(calibration_folder):
         os.mkdir(calibration_folder)
@@ -61,14 +61,14 @@ if calibrate:
 # Settings for wind resource.
 offshore_wind_turbine = 'IEA_10MW_198_RWT.yaml'
 onshore_wind_turbine = 'IEA_3.4MW_130_RWT.yaml'
-read_wind_coefficients = False
+read_wind_coefficients = True
 
 # Settings for solar resource.
 solar_panel = 'CSi'
-read_solar_coefficients = False
+read_solar_coefficients = True
 
 # Settings for hydropower resource.
-read_hydropower_coefficients = False
+read_hydropower_coefficients = True
 
 # Settings for heating demand.
 heating_daily_temperature_threshold = 15.0
