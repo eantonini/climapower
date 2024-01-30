@@ -89,7 +89,7 @@ def get_weighted_averaged_coefficients(coefficients_filename, country_info, reso
     installed_capacity = pd.Series(installed_capacity, index=years_of_interest)
 
     # Calculate the weighted average of the calibration coefficients across all the years where the weights are the installed capacity in each year.
-    weighted_coefficients =  (dataframe[years_of_interest]*installed_capacity).sum(axis=1) / installed_capacity.sum() # type: ignore
+    weighted_coefficients =  (dataframe[years_of_interest]*installed_capacity).sum(axis=1) / installed_capacity.sum()
 
     return weighted_coefficients
 

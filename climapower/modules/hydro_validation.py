@@ -61,8 +61,8 @@ def validate_hydropower_inflow_time_series(country_info):
     for year in general_utilities.get_years_for_calibration(country_info, 'hydropower'):
 
         # Calculate the aggregated hydropower inflow time series. This is in unit of kg/h
-        # aggregated_simulated_hydropower_inflow_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage'))
-        aggregated_simulated_hydropower_inflow_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, 'hydropower__inflow_time_series__run_of_river'))
+        aggregated_simulated_hydropower_inflow_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage'))
+        # aggregated_simulated_hydropower_inflow_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, 'hydropower__inflow_time_series__run_of_river'))
 
         # Select only the time steps in the year of interest. Add 7 days before and after the year of interest to make sure the resampled time series is complete.
         start = pd.Timestamp(str(year)) - pd.Timedelta(days=7)
@@ -73,16 +73,16 @@ def validate_hydropower_inflow_time_series(country_info):
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series.to_series().resample('1W').sum()
 
         # Assume mean hydraulic head of all the hydropower plants in the country.
-        # mean_hydraulic_head = 50 # m
-        mean_hydraulic_head = 10 # m
+        mean_hydraulic_head = 50 # m
+        # mean_hydraulic_head = 10 # m
 
         # Convert the time series to unit of GWh.
         j_to_gwh = 1/3.6e12
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series*9.81*mean_hydraulic_head*j_to_gwh
 
         # Calculate the hydropower inflow time series estimated with data retreived from ENTSO-E. This is in unit of GWh.
-        # aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year)/1e3
-        aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year, water_reservoir_and_pumped_storage=False)/1e3
+        aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year)/1e3
+        # aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year, water_reservoir_and_pumped_storage=False)/1e3
 
         # Select only the time steps in the year of interest.
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series.loc[aggregated_simulated_hydropower_inflow_time_series.index.year == year]
@@ -110,5 +110,5 @@ def validate_hydropower_inflow_time_series(country_info):
             compare = compare.loc[compare.index.year == year]
 
             # Plot the comparison.
-            # figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow__conventional_and_pumped_storage', compare)
-            figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow__run_of_river', compare)
+            figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow__conventional_and_pumped_storage', compare)
+            # figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow__run_of_river', compare)

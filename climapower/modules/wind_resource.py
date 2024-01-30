@@ -43,7 +43,7 @@ def get_wind_capacity_factor_time_series(country_info, region_shape, year, offsh
         turbine = atlite.resource.get_windturbineconfig(settings.onshore_wind_turbine)
     
     # Read the wind calibration coefficients.
-    if settings.read_wind_coefficients: 
+    if settings.read_wind_coefficients and not offshore: 
         coefficients = validation_utilities.read_calibration_coefficients(country_info, 'wind', offshore=offshore)
         alpha = coefficients.loc['alpha']
         beta = coefficients.loc['beta']

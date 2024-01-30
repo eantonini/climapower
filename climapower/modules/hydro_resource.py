@@ -54,8 +54,8 @@ def compute_aggregated_hydropower_inflow(country_info):
 
     # Select the type of plants. It can be 'HDAM' (hydro water reservois), 'HPHS' (hydro pumped storage), or 'HROR' (hydro run-of-river).
     # Water reservoirs and pumped storage hydro power plants are aggregated together because of the inflow into the reservoirs.
-    # plants = plants.loc[np.logical_or(plants['type'] == 'HDAM', plants['type'] == 'HPHS')]
-    plants = plants.loc[plants['type'] == 'HROR']
+    plants = plants.loc[np.logical_or(plants['type'] == 'HDAM', plants['type'] == 'HPHS')]
+    # plants = plants.loc[plants['type'] == 'HROR']
 
     # Read the hydro basins in Europe and select the ones that are upstream of the hydro power plants in the country of interest.
     all_basins = settings.energy_data_directory+'/hybas_eu_lev01-12_v1c/hybas_eu_lev08_v1c.shp'
@@ -103,5 +103,5 @@ def compute_aggregated_hydropower_inflow(country_info):
         aggregated_inflow = aggregated_inflow.assign_attrs(units='kg/h', description="Mass flow rate of water into the reservoirs")
 
         # Save the aggregated inflow.
-        # general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage')
-        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__run_of_river')
+        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage')
+        # general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series__run_of_river')
