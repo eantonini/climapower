@@ -58,7 +58,7 @@ def validate_hydropower_inflow_time_series(country_info):
     # Get the shape of the region of interest.
     region_shape = geometry.get_geopandas_region(country_info)
     
-    for year in range(settings.comparison_start_year, settings.comparison_end_year+1):
+    for year in general_utilities.get_years_for_calibration(country_info, 'hydropower'):
 
         # Calculate the aggregated hydropower inflow time series. This is in unit of kg/h
         # aggregated_simulated_hydropower_inflow_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, 'hydropower__inflow_time_series__conventional_and_pumped_storage'))

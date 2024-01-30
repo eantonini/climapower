@@ -64,8 +64,12 @@ def get_entsoe_generation(country_info, year, generation_code, start=None, end=N
     # If the generation time series is a DataFrame, keep only the first column, unless the hydropower pumped storage consumption is retrieved.
     if isinstance(entsoe_generation_time_series, pd.DataFrame):
         if hydro_pumped_storage_consumption:
-            print('ENTSO-E data is a Pandas DataFrame. ENTSO-E variable extracted:', entsoe_generation_time_series.iloc[:,1].name, '.')
-            entsoe_generation_time_series = entsoe_generation_time_series.iloc[:,1]
+            try:
+                print('ENTSO-E data is a Pandas DataFrame. ENTSO-E variable extracted:', entsoe_generation_time_series.iloc[:,1].name, '.')
+                entsoe_generation_time_series = entsoe_generation_time_series.iloc[:,1]
+            except IndexError:
+                print('ENTSO-E hydropower consumption not present.')
+                entsoe_generation_time_series = entsoe_generation_time_series.iloc[:,0] * 0
         else:
             print('ENTSO-E data is a Pandas DataFrame. ENTSO-E variable extracted:', entsoe_generation_time_series.iloc[:,0].name, '.')
             entsoe_generation_time_series = entsoe_generation_time_series.iloc[:,0]

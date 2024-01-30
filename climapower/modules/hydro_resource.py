@@ -33,7 +33,7 @@ def get_runoff_time_series(region_shape, year):
     hydro_database = climate_data.get_hydro_database(year, region_shape)
 
     # Convert the hydro database to the runoff time series.
-    time_series = atlite.convert.convert_runoff(hydro_database, weight_with_height=False) # type: ignore
+    time_series = atlite.convert.convert_runoff(hydro_database, weight_with_height=False)
 
     return time_series
 

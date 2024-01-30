@@ -123,7 +123,7 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
     coefficients_filename = directories.get_calibration_coefficients_data_path(country_info, resource_type, additional_info=additional_info)
 
     # Get the list of years of interest.
-    years_of_interest = [str(year) for year in range(settings.comparison_start_year, settings.comparison_end_year+1)]
+    years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(country_info, resource_type, offshore=offshore)]
     
     if os.path.exists(coefficients_filename):
     

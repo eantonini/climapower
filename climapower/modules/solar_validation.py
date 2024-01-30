@@ -98,7 +98,7 @@ def validate_solar_capacity_factor_time_series(country_info):
     # Create a temporary cutout.
     cutout = climate_utilities.create_temporary_cutout(region_shape)
     
-    for year in range(settings.comparison_start_year, settings.comparison_end_year+1):
+    for year in general_utilities.get_years_for_calibration(country_info, 'solar'):
 
         # Get the plant layout and convert it t
         plant_database = plant_data.get_opsd_plant_database(country_info, year, 'solar')

@@ -48,17 +48,13 @@ climate_data_source = 'historical' # 'historical' or 'projections'
 start_year_for_mean_climate_variable = 2000
 end_year_for_mean_climate_variable = 2020
 
-# Set the years over which to perform a comparison against actual data.
-comparison_start_year = 2015
-comparison_end_year = 2019
-
 # Set the data source against which to compare the results. This is used only for the validation of wind and solar capacity factors.
 validation_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'entsoe'
 
 # Decide whether to calibrate the results. The calibration is implemented for wind capacity factors and hydropower inflow time series.
+calibration_folder = working_directory + '/calibration_results'
 calibrate = True
 if calibrate:
-    calibration_folder = working_directory + '/calibration_results'
     if not os.path.exists(calibration_folder):
         os.mkdir(calibration_folder)
 

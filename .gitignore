@@ -9,3 +9,5 @@ climapower/energy_data
 climapower/geospatial_data
 climapower/test_code
 climapower/log_files
+climapower/check_energy_data.csv
+climapower/check_energy_data.py

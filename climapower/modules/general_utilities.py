@@ -1,4 +1,5 @@
 import os
+import math
 import argparse
 import numpy as np
 import xarray as xr
@@ -22,11 +23,23 @@ def get_countries():
         Dataframe with the countries in the focus region, their ISO codes, and whether they have offshore wind
     '''
 
+    column_names = ['Name',
+                    'ISO Alpha-3',
+                    'ISO Alpha-2',
+                    'Offshore wind',
+                    'Hydropower',
+                    'Start year for onshore wind calibration',
+                    'End year for onshore wind calibration',
+                    'Start year for solar calibration',
+                    'End year for solar calibration',
+                    'Start year for hydropower calibration',
+                    'End year for hydropower calibration']
+
     # Read European EU countries and their information.
-    countries = pd.read_csv(settings.working_directory + '/EU27_countries.csv', index_col='Name', usecols=['Name','ISO Alpha-3','ISO Alpha-2', 'Offshore'])
+    countries = pd.read_csv(settings.working_directory + '/EU27_countries.csv', index_col='Name', usecols=column_names)
 
     # Read European non-EU countries and their information.
-    countries = pd.concat([countries, pd.read_csv(settings.working_directory + '/European_non_EU_countries.csv', index_col='Name', usecols=['Name','ISO Alpha-3','ISO Alpha-2', 'Offshore'])])
+    countries = pd.concat([countries, pd.read_csv(settings.working_directory + '/European_non_EU_countries.csv', index_col='Name', usecols=column_names)])
 
     # Sort the countries by name.
     countries = countries.sort_values(by=['Name'])
@@ -41,24 +54,64 @@ def read_command_line_arguments():
 
     Returns
     -------
-    country_info : pandas.Series
-        Series containing the information of the country of interest
+    country_info : pandas.Series or pandas.DataFrame
+        Series containing the information of the country of interest or dataframe containing the information of all the countries
     '''
 
     # Create a parser for the command line arguments.
     parser = argparse.ArgumentParser()
-    parser.add_argument('country_name', metavar='country_name', type=str, help='The name of the country of interest')
+    parser.add_argument('country_name', metavar='country_name', type=str, help='The name of the country of interest', nargs='?', const='')
 
     # Read the arguments from the command line.
     args = parser.parse_args()
 
     # Get the countries in the focus region.
-    country_info_list = get_countries()
+    country_info_dataframe = get_countries()
 
     # Get the country of interest.
-    country_info = country_info_list.loc[country_info_list['Name']==args.country_name].squeeze()
+    if args.country_name == '':
+        country_info = country_info_dataframe
+    else:
+        country_info = country_info_dataframe.loc[country_info_dataframe['Name']==args.country_name].squeeze()
 
     return country_info
+
+
+def get_years_for_calibration(country_info, resource_type, offshore=False):
+    '''
+    Get the years for which the calibration of the resource of interest is needed.
+
+    Parameters
+    ----------
+    country_info : pandas.Series
+        Series containing the information of the country of interest
+    resource_type : str
+        Type of resource of interest ('wind', 'solar', 'hydropower')
+
+    Returns
+    -------
+    years_for_calibration : list
+        List of years for which the calibration of the resource of interest is needed
+    '''
+
+    # Get the years for which the calibration of the resource of interest is needed.
+    if resource_type == 'wind' and offshore==False:
+        start_year = country_info['Start year for onshore wind calibration']
+        end_year = country_info['End year for onshore wind calibration']
+    elif resource_type == 'solar':
+        start_year = country_info['Start year for solar calibration']
+        end_year = country_info['End year for solar calibration']
+    elif resource_type == 'hydropower':
+        start_year = country_info['Start year for hydropower calibration']
+        end_year = country_info['End year for hydropower calibration']
+
+    # If the years are not available, return an empty list.
+    if math.isnan(start_year) or math.isnan(end_year):
+        years_for_calibration = []
+    else:
+        years_for_calibration = list(range(int(start_year), int(end_year)+1))
+
+    return years_for_calibration
 
 
 def write_to_log_file(filename, message, new_file=False, write_time=False):

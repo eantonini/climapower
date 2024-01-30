@@ -8,10 +8,22 @@ def main():
     '''
 
     # Get the country of interest.
-    country = general_utilities.read_command_line_arguments()
+    country_info = general_utilities.read_command_line_arguments()
 
-    # Compute the aggregated solar capacity factor.
-    hydro_resource.compute_aggregated_hydropower_inflow(country)
+    # Compute the aggregated hydropower inflow.
+    if isinstance(country_info, pd.Series):
+
+        if country_info['Hydropower']:
+            hydro_resource.compute_aggregated_hydropower_inflow(country_info)
+    
+    else:
+
+        for country_name in country_info['Name']:
+
+            country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
+
+            if country_info_series['Hydropower']:
+                hydro_resource.compute_aggregated_hydropower_inflow(country_info_series)
 
 
 if __name__ == "__main__":

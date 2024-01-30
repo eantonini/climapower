@@ -8,10 +8,20 @@ def main():
     '''
 
     # Get the country of interest.
-    country = general_utilities.read_command_line_arguments()
+    country_info = general_utilities.read_command_line_arguments()
 
     # Compute the aggregated solar capacity factor.
-    heating_demand.compute_aggregated_heating_demand(country)
+    if isinstance(country_info, pd.Series):
+
+        heating_demand.compute_aggregated_heating_demand(country_info)
+    
+    else:
+
+        for country_name in country_info['Name']:
+
+            country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
+
+            heating_demand.compute_aggregated_heating_demand(country_info_series)
 
 
 if __name__ == "__main__":

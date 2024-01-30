@@ -8,12 +8,26 @@ def main():
     '''
 
     # Get the country of interest.
-    country = general_utilities.read_command_line_arguments()
+    country_info = general_utilities.read_command_line_arguments()
 
     # Compute the aggregated capacity factor for the onshore and offshore wind resource.
-    wind_resource.compute_aggregated_wind_capacity_factor(country, offshore=False)
-    if country['Offshore']:
-        wind_resource.compute_aggregated_wind_capacity_factor(country, offshore=True)
+    if isinstance(country_info, pd.Series):
+
+        wind_resource.compute_aggregated_wind_capacity_factor(country_info, offshore=False)
+
+        if country_info['Offshore wind']:
+            wind_resource.compute_aggregated_wind_capacity_factor(country_info, offshore=True)
+    
+    else:
+
+        for country_name in country_info['Name']:
+
+            country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
+
+            wind_resource.compute_aggregated_wind_capacity_factor(country_info_series, offshore=False)
+
+            if country_info_series['Offshore wind']:
+                wind_resource.compute_aggregated_wind_capacity_factor(country_info_series, offshore=True)
 
 
 if __name__ == "__main__":

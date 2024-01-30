@@ -1,28 +1,28 @@
-,Name,ISO Alpha-3,ISO Alpha-2,Offshore
-0,Austria,AUT,AT,False
-1,Belgium,BEL,BE,True
-2,Bulgaria,BGR,BG,True
-3,Croatia,HRV,HR,True
-4,Cyprus,CYP,CY,True
-5,Czech Republic,CZE,CZ,False
-6,Denmark,DNK,DK,True
-7,Estonia,EST,EE,True
-8,Finland,FIN,FI,True
-9,France,FRA,FR,True
-10,Germany,DEU,DE,True
-11,Greece,GRC,GR,True
-12,Hungary,HUN,HU,False
-13,Ireland,IRL,IE,True
-14,Italy,ITA,IT,True
-15,Latvia,LVA,LV,True
-16,Lithuania,LTU,LT,True
-17,Luxembourg,LUX,LU,False
-18,Malta,MLT,MT,True
-19,Netherlands,NLD,NL,True
-20,Poland,POL,PL,True
-21,Portugal,PRT,PT,True
-22,Romania,ROU,RO,True
-23,Slovakia,SVK,SK,False
-24,Slovenia,SVN,SI,True
-25,Spain,ESP,ES,True
-26,Sweden,SWE,SE,True
+,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for hydropower calibration,End year for hydropower calibration
+0,Austria,AUT,AT,FALSE,TRUE,,,,,2015,2022
+1,Belgium,BEL,BE,TRUE,FALSE,,,,,,
+2,Bulgaria,BGR,BG,TRUE,TRUE,,,,,2015,2022
+3,Croatia,HRV,HR,TRUE,TRUE,,,,,2019,2022
+4,Cyprus,CYP,CY,TRUE,FALSE,,,,,,
+5,Czech Republic,CZE,CZ,FALSE,FALSE,,,,,,
+6,Denmark,DNK,DK,TRUE,FALSE,2015,2019,,,,
+7,Estonia,EST,EE,TRUE,FALSE,,,,,,
+8,Finland,FIN,FI,TRUE,FALSE,,,,,,
+9,France,FRA,FR,TRUE,TRUE,2015,2019,2015,2019,2015,2022
+10,Germany,DEU,DE,TRUE,FALSE,2015,2019,2015,2019,,
+11,Greece,GRC,GR,TRUE,TRUE,,,,,2018,2022
+12,Hungary,HUN,HU,FALSE,FALSE,,,,,,
+13,Ireland,IRL,IE,TRUE,FALSE,,,,,,
+14,Italy,ITA,IT,TRUE,TRUE,,,,,2015,2022
+15,Latvia,LVA,LV,TRUE,FALSE,,,,,,
+16,Lithuania,LTU,LT,TRUE,FALSE,,,,,,
+17,Luxembourg,LUX,LU,FALSE,FALSE,,,,,,
+18,Malta,MLT,MT,TRUE,FALSE,,,,,,
+19,Netherlands,NLD,NL,TRUE,FALSE,,,,,,
+20,Poland,POL,PL,TRUE,FALSE,,,,,,
+21,Portugal,PRT,PT,TRUE,TRUE,,,,,2015,2022
+22,Romania,ROU,RO,TRUE,TRUE,,,,,2015,2022
+23,Slovakia,SVK,SK,FALSE,FALSE,,,,,,
+24,Slovenia,SVN,SI,TRUE,FALSE,,,,,,
+25,Spain,ESP,ES,TRUE,TRUE,,,,,2015,2022
+26,Sweden,SWE,SE,TRUE,TRUE,2015,2019,,,2015,2022

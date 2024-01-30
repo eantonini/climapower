@@ -1,3 +1,5 @@
+import math
+
 import modules.general_utilities as general_utilities
 import modules.hydro_validation as hydro_validation
 
@@ -10,8 +12,22 @@ def main():
     # Get the country of interest.
     country_info = general_utilities.read_command_line_arguments()
 
-    # Compute the aggregated solar capacity factor.
-    hydro_validation.validate_hydropower_inflow_time_series(country_info)
+    # Calibrate the hydropower inflow.
+    if isinstance(country_info, pd.Series):
+
+        if general_utilities.get_years_for_calibration(country_info, 'hydropower'):
+
+            hydro_validation.validate_hydropower_inflow_time_series(country_info)
+    
+    else:
+
+        for country_name in country_info['Name']:
+
+            country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
+
+            if general_utilities.get_years_for_calibration(country_info, 'hydropower'):
+
+                hydro_validation.validate_hydropower_inflow_time_series(country_info_series)
 
 
 if __name__ == "__main__":
