@@ -60,7 +60,7 @@ def read_command_line_arguments():
 
     # Create a parser for the command line arguments.
     parser = argparse.ArgumentParser()
-    parser.add_argument('country_name', metavar='country_name', type=str, help='The name of the country of interest', nargs='?', const='')
+    parser.add_argument('country_name', metavar='country_name', type=str, help='The name of the country of interest', nargs='?')
 
     # Read the arguments from the command line.
     args = parser.parse_args()
@@ -69,7 +69,7 @@ def read_command_line_arguments():
     country_info_dataframe = get_countries()
 
     # Get the country of interest.
-    if args.country_name == '':
+    if args.country_name is None:
         country_info = country_info_dataframe
     else:
         country_info = country_info_dataframe.loc[country_info_dataframe['Name']==args.country_name].squeeze()

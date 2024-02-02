@@ -15,7 +15,7 @@ if not os.path.exists(result_folder):
     os.makedirs(result_folder)
 
 # Decide whether to make and save plots.
-make_plots = True
+make_plots = False
 save_plots = True
 
 # Set folder where plots will be saved.

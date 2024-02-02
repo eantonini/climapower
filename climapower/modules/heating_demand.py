@@ -36,7 +36,7 @@ def get_heating_demand_time_series(region_shape, year, threshold, hour_shift=0.0
     temperature_database = climate_data.get_temperature_database(year, region_shape)
 
     # Convert the temperature database to the heating demand time series.
-    time_series = atlite.convert.convert_heat_demand(temperature_database, threshold=threshold, a=1.0, constant=0.0, hour_shift=hour_shift) # type: ignore
+    time_series = atlite.convert.convert_heat_demand(temperature_database, threshold=threshold, a=1.0, constant=0.0, hour_shift=hour_shift)
     
     return time_series
 

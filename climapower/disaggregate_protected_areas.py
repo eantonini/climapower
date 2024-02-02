@@ -62,7 +62,7 @@ for index, country in countries.iterrows():
         
         regional_protected_areas.to_file(data_path+regional_folder_name+regional_protected_areas_filename)
         
-    if country['Offshore']:
+    if country['Offshore wind']:
         
         regional_offshore_protected_areas_filename = 'WDPA_WDOECM_'+country['ISO Alpha-2']+'_offshore_shp.shp'
         

@@ -125,7 +125,7 @@ def exclude_areas(country_info, excluder, resource_type, offshore):
 
     if offshore:
         # Add protected areas to the exclusion container.
-        excluder = exclude_wdpa_protected_areas(country_info, excluder, offshore=country_info['Offshore'])
+        excluder = exclude_wdpa_protected_areas(country_info, excluder, offshore=country_info['Offshore wind'])
 
         # Add the inverse of costal regions (code = 44) up to about 100 km from shore to the exclusion container. 30 km are already included. We add 70 km of buffer.
         excluder = exclude_regions_based_on_corine(excluder, codes=[44], buffer=70000, invert=True)

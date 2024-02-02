@@ -122,10 +122,10 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
     # Get the full data path of the wind calibration coefficients.
     coefficients_filename = directories.get_calibration_coefficients_data_path(country_info, resource_type, additional_info=additional_info)
 
-    # Get the list of years of interest.
-    years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(country_info, resource_type, offshore=offshore)]
-    
     if os.path.exists(coefficients_filename):
+
+        # Get the list of years of interest.
+        years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(country_info, resource_type, offshore=offshore)]
     
         # Calculate the weighted average of the calibration coefficients across all the years, where the weights are the installed capacity in each year.
         coefficients =  get_weighted_averaged_coefficients(coefficients_filename, country_info, resource_type, years_of_interest)
@@ -133,8 +133,8 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
     else:
         
         # Get the filename of the calibration coefficients of the other countries.
-        coefficients_filename_list = coefficients_filename.replace(country_info['ISO Alpha-2'], '*')
-        coefficients_filename_list = glob.glob(coefficients_filename_list)
+        coefficients_filename = coefficients_filename.replace(country_info['ISO Alpha-2'], '*')
+        coefficients_filename_list = glob.glob(coefficients_filename)
 
         # Initialize the dataframe of the calibration coefficients and the series of the installed capacity in the last year of interest.
         coefficients = pd.DataFrame(dtype=float)
@@ -151,6 +151,9 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
 
             # Get the info of the other country.
             other_country_info = country_info_list.loc[country_info_list['ISO Alpha-2']==other_country_ISO_code].squeeze()
+
+            # Get the list of years of interest.
+            years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(other_country_info, resource_type, offshore=offshore)]
 
             # Calculate the weighted average of the calibration coefficients across all the years, where the weights are the installed capacity in each year.
             coefficients[other_country_info['Name']] =  get_weighted_averaged_coefficients(other_coefficients_filename, other_country_info, resource_type, years_of_interest)

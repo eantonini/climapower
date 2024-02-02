@@ -43,7 +43,7 @@ def main():
         general_utilities.write_to_log_file(log_file, 'Processing ' + country_info['Name'] + '.\n\n')
         print('Processing ' + country_info['Name'] + '.\n')
 
-        if country_info['Offshore']:
+        if country_info['Offshore wind']:
             general_utilities.write_to_log_file(log_file, '- ' + country_info['Name'] + ' has offshore wind.\n\n')
         else:
             general_utilities.write_to_log_file(log_file, '- ' + country_info['Name'] + ' does not have offshore wind.\n\n')
@@ -52,7 +52,7 @@ def main():
 
             print(' - ' + str(year) + '\n')
 
-            if country_info['Offshore']:
+            if country_info['Offshore wind']:
 
                 general_utilities.write_to_log_file(log_file, '- Getting ENTSO-E offshore wind generation data for ' + country_info['Name'] + ' in ' + str(year) + '.\n')
                 try:
@@ -185,7 +185,7 @@ def main():
 
             new_line = pd.DataFrame(data={'country': country_info['Name'],
                                           'year': year,
-                                          'offshore': country_info['Offshore'].astype(str),
+                                          'offshore': country_info['Offshore wind'].astype(str),
                                           'entsoe_offshore_wind_generation': entsoe_offshore_wind_generation,
                                           'entsoe_offshore_wind_installed_capacity': entsoe_offshore_wind_total_installed_capacity,
                                           'opsd_offshore_wind_generation': opsd_offshore_wind_generation,
