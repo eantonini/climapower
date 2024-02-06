@@ -133,7 +133,7 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
     else:
         
         # Get the filename of the calibration coefficients of the other countries.
-        coefficients_filename = coefficients_filename.replace(country_info['ISO Alpha-2'], '*')
+        coefficients_filename = coefficients_filename.replace('_'+country_info['ISO Alpha-2']+'_', '_*_')
         coefficients_filename_list = glob.glob(coefficients_filename)
 
         # Initialize the dataframe of the calibration coefficients and the series of the installed capacity in the last year of interest.

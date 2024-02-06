@@ -1,5 +1,7 @@
+import os
 import pandas as pd
 
+import modules.directories as directories
 import modules.general_utilities as general_utilities
 import modules.solar_resource as solar_resource
 
@@ -15,7 +17,8 @@ def main():
     # Compute the aggregated solar capacity factor.
     if isinstance(country_info, pd.Series):
 
-        solar_resource.compute_aggregated_solar_capacity_factor(country_info)
+        if not os.path.exists(directories.get_postprocessed_data_path(country_info, 'solar__capacity_factor_time_series')):
+            solar_resource.compute_aggregated_solar_capacity_factor(country_info)
     
     else:
 
@@ -23,7 +26,8 @@ def main():
 
             country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
 
-            solar_resource.compute_aggregated_solar_capacity_factor(country_info_series)
+            if not os.path.exists(directories.get_postprocessed_data_path(country_info_series, 'solar__capacity_factor_time_series')):
+                solar_resource.compute_aggregated_solar_capacity_factor(country_info_series)
 
 
 if __name__ == "__main__":
