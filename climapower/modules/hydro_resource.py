@@ -90,10 +90,10 @@ def compute_aggregated_hydropower_inflow(country_info):
 
         if settings.read_hydropower_coefficients: 
             # Read the hydropower calibration coefficients.
-            retain_factors = validation_utilities.read_calibration_coefficients(country_info, 'hydropower')
+            retain_factors = validation_utilities.read_calibration_coefficients(country_info, 'hydropower', additional_info='__conventional_and_pumped_storage')
 
             # Map the retain factors (one for each month) to the time series of the inflow (one for each time step).
-            mapped_retain_factors = pd.Series(data=retain_factors[aggregated_inflow.index.month-1].values, index=aggregated_inflow.index)
+            mapped_retain_factors = pd.Series(data=retain_factors[aggregated_inflow.time.dt.month-1].values, index=aggregated_inflow.time)
 
             # Calibrate the simulated hydropower inflow time series.
             aggregated_inflow = aggregated_inflow*mapped_retain_factors

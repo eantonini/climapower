@@ -83,9 +83,13 @@ def get_weighted_averaged_coefficients(coefficients_filename, country_info, reso
     # Read the dataframe from csv files.
     dataframe = pd.read_csv(coefficients_filename, index_col=0)
 
-    # Get the installed capacity of the resource of interest in the country and years of interest.
-    # For wind, it is assumed that all wind capacity in the EI database is onshore.
-    installed_capacity = [energy_supply_data.get_ei_capacity(country_info, int(year), resource_type) for year in years_of_interest]
+    if resource_type == 'wind' or resource_type == 'solar':
+        # Get the installed capacity of the resource of interest in the country and years of interest.
+        # For wind, it is assumed that all wind capacity in the EI database is onshore.
+        installed_capacity = [energy_supply_data.get_ei_capacity(country_info, int(year), resource_type) for year in years_of_interest]
+    elif resource_type == 'hydropower':
+        # Assume that the installed capacity of the hydro power plants is constant across all the years of interest.
+        installed_capacity = [1]*len(years_of_interest)
     installed_capacity = pd.Series(installed_capacity, index=years_of_interest)
 
     # Calculate the weighted average of the calibration coefficients across all the years where the weights are the installed capacity in each year.
@@ -94,7 +98,7 @@ def get_weighted_averaged_coefficients(coefficients_filename, country_info, reso
     return weighted_coefficients
 
 
-def read_calibration_coefficients(country_info, resource_type, offshore=False):
+def read_calibration_coefficients(country_info, resource_type, offshore=False, additional_info = ''):
     '''
     Read the calibration coefficients. If the coefficient of the country are not available, calculate them as the weighted average of the coefficients of the other countries.
 
@@ -106,18 +110,14 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False):
         Type of resource of interest
     offshore : bool, optional
         True if the resource of interest is offshore wind
-
+    additional_info : str, optional
+        Additional information to add at the end of the filename
+    
     Returns
     -------
     coefficients : pandas.Series
         Series containing the calibration coefficients
     '''
-    
-    # Set additional information to add to the filename in case of wind.
-    if resource_type == 'wind':
-        additional_info = ('__offshore' if offshore else '__onshore')
-    else:
-        additional_info = ''
     
     # Get the full data path of the wind calibration coefficients.
     coefficients_filename = directories.get_calibration_coefficients_data_path(country_info, resource_type, additional_info=additional_info)

@@ -4,6 +4,7 @@ import xarray as xr
 
 import settings
 import modules.directories as directories
+import modules.general_utilities as general_utilities
 import modules.geometry as geometry
 import modules.validation_utilities as validation_utilities
 import modules.energy_supply_data as energy_supply_data

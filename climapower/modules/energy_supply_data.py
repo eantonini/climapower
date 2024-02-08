@@ -475,6 +475,10 @@ def get_ei_capacity(country_info, year, resource_type):
     if resource_type not in ['wind', 'solar']:
         raise AssertionError('Resource type not recognized or implemented')
     
+    # Check if the year is within the available range.
+    if year < 1996 or year > 2022:
+        raise AssertionError('Year not within the available range (1996-2022)')
+    
     # Read the Energy Institute Statistical Review of World Energy database.
     ei_energy_database_filename = settings.energy_data_directory+'/EI-stats-review-2023-all-data.xlsx'
     ei_energy_database = pd.read_excel(ei_energy_database_filename, sheet_name=resource_type.capitalize()+' Capacity', skiprows=2, header=1, nrows=66, usecols=np.arange(28))

@@ -44,7 +44,7 @@ def get_wind_capacity_factor_time_series(country_info, region_shape, year, offsh
     
     # Read the wind calibration coefficients.
     if settings.read_wind_coefficients and not offshore: 
-        coefficients = validation_utilities.read_calibration_coefficients(country_info, 'wind', offshore=offshore)
+        coefficients = validation_utilities.read_calibration_coefficients(country_info, 'wind', offshore=offshore, additional_info=('__offshore' if offshore else '__onshore'))
         alpha = coefficients.loc['alpha']
         beta = coefficients.loc['beta']
     
