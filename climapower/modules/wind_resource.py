@@ -49,7 +49,7 @@ def get_wind_capacity_factor_time_series(country_info, region_shape, year, offsh
         beta = coefficients.loc['beta']
     
     # Get wind speed data, interpolate to turbine hub height and convert to power.
-    time_series = atlite.convert.convert_wind(wind_database, turbine, alpha, beta) # type: ignore
+    time_series = atlite.convert.convert_wind(wind_database, turbine, alpha, beta)
 
     return time_series
 

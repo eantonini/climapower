@@ -301,7 +301,7 @@ def get_extended_entsoe_hydropower_reservoir_filling_level(country_info, year, s
     return entsoe_reservoir_filling_level_time_series
 
 
-def get_entsoe_hydropower_inflow(country_info, year, water_reservoir_and_pumped_storage=True):
+def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_storage=True):
     '''
     Retrieve the hydropower generation and reservoir filling level time series from ENTSO-E and compute the hydropower inflow time series in MWh.
 
@@ -315,6 +315,9 @@ def get_entsoe_hydropower_inflow(country_info, year, water_reservoir_and_pumped_
         Series containing the information of the country of interest
     year : int
         Year of interest
+    coventional_and_pumped_storage : bool, optional
+        If True, water reservoirs and pumped storage hydro power plants are aggregated together because of the inflow into the reservoirs.
+        If False, run-of-river hydro power plants are selected.
 
     Returns
     -------
@@ -332,7 +335,7 @@ def get_entsoe_hydropower_inflow(country_info, year, water_reservoir_and_pumped_
     start_following_period = pd.Timestamp(str(year+1), tz='UTC') - pd.Timedelta(days=7)
     end_following_period = pd.Timestamp(str(year+1), tz='UTC') + pd.Timedelta(days=14)
 
-    if water_reservoir_and_pumped_storage:
+    if coventional_and_pumped_storage:
        
         # Set the ENTSO-E generation codes.
         water_reservoir_hydropower_generation_code = 'B12' # Hydro Water Reservoir
