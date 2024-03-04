@@ -15,7 +15,7 @@ if not os.path.exists(result_folder):
     os.makedirs(result_folder)
 
 # Decide whether to make and save plots.
-make_plots = False
+make_plots = True
 save_plots = True
 
 # Set folder where plots will be saved.
@@ -30,9 +30,9 @@ dataset_info = {
     'focus_region' : 'Europe',
     'historical_dataset' : 'ERA5',
     'future_dataset' : 'CORDEX',
-    'representative_concentration_pathway' : 'rcp_4_5',
-    'global_climate_model' : 'cnrm_cerfacs_cm5',
-    'regional_climate_model' : 'cnrm_aladin63'
+    'representative_concentration_pathway' : 'rcp_2_6', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
+    'global_climate_model' : 'mpi_m_mpi_esm_lr', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'mohc_hadgem2_es'
+    'regional_climate_model' : 'clmcom_btu_cclm4_8_17' # 'cnrm_aladin63' or 'clmcom_btu_cclm4_8_17' or 'ictp_regcm4_6'
 }
 
 # Set the chunk size for the climate data.
@@ -40,9 +40,9 @@ chunk_size_lon_lat = {'longitude': 10, 'latitude': 10}
 chunk_size_x_y = {'x': 10, 'y': 10}
 
 # Set the years over which to aggregate climate data.
-aggregation_start_year = 1940
-aggregation_end_year = 2022
-climate_data_source = 'historical' # 'historical' or 'projections'
+aggregation_start_year = 2010
+aggregation_end_year = 2100
+climate_data_source = 'projections' # 'historical' or 'projections'
 
 # Set the years over which to calculate the mean climate variables used to estimate the capacity factors of wind and solar.
 start_year_for_mean_climate_variable = 2000

@@ -21,7 +21,7 @@ def get_basins_of_interests(country_info, conventional_and_pumped_storage=True):
     country_info : pandas.Series
         Series containing the information of the country of interest
     conventional_and_pumped_storage : bool
-        If True, water reservoirs and pumped storage hydro power plants are aggregated together because of the inflow into the reservoirs
+        If True, water reservoirs and pumped storage hydro power plants are selected and aggregated together
         If False, run-of-river hydro power plants are selected
 
     Returns
@@ -74,7 +74,7 @@ def get_runoff_time_series(region_shape, year):
     return time_series
 
 
-def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin):
+def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage):
     '''
     Calculate the inflow time series for the given year and country.
 
@@ -88,6 +88,8 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
         Hydro basins upstream of the hydro power plants in the country of interest
     fraction_of_grid_cell_in_each_basin : xarray.DataArray
         Fraction of each grid cell that intersects with each basin (number of basins x longitude x latitude)
+    coventional_and_pumped_storage : bool
+        True if the hydropower inflow is for the conventional and pumped storage plants
     
     Returns
     -------
@@ -105,14 +107,28 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
     aggregated_runoff_per_basin = aggregated_runoff_per_basin.to_array(dim='hid')
     aggregated_runoff_per_basin['hid'] = aggregated_runoff_per_basin['hid'].values.astype('int')
     
-    # The runoff is in units of m. It should be multiplied by the water density and the basin area to convert to kg.
-    aggregated_runoff_per_basin *= 1000.0*xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)
+    if settings.climate_data_source == 'historical':
+        # The runoff is in units of m per time step (the time resolution is one hour). It should be multiplied by the water density and the basin area to convert to kg per time step.
+        aggregated_runoff_per_basin *= 1000.0*xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)
+    elif settings.climate_data_source == 'projections':
+        # The runoff is in units of kg m-2 s-1 (the time resolution is one hour). It should be multiplied by the basin area and the number of seconds in one hour to convert to kg per time step.
+        aggregated_runoff_per_basin *= xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)*60*60
 
     # Aggregate the time series of the runoff for each basin to the belonging power plant. The result is an xarray DataArray with one time series for each plant.
     aggregated_inflow_per_plant = atlite.hydro.shift_and_aggregate_runoff_for_plants(basins_of_interests, aggregated_runoff_per_basin, flowspeed=1)
     
     # Sum the inflow time series of all the plants.
     aggregated_inflow = aggregated_inflow_per_plant.sum(dim='plant')
+
+    # Assume a mean hydraulic head of all the hydropower plants in the country.
+    if coventional_and_pumped_storage:
+        mean_hydraulic_head = 50 # m - For conventional and pumped storage hydropower plants
+    else:
+        mean_hydraulic_head = 10 # m - For run-of-river hydropower plants
+
+    # Convert the time series to unit of GWh.
+    j_to_gwh = 1/3.6e12
+    aggregated_inflow = aggregated_inflow*9.81*mean_hydraulic_head*j_to_gwh
 
     return aggregated_inflow
 
@@ -125,6 +141,9 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
     ----------
     country_info : pandas.Series
         Series containing the information of the country of interest
+    coventional_and_pumped_storage : bool
+        If True, water reservoirs and pumped storage hydro power plants are selected and aggregated together
+        If False, run-of-river hydro power plants are selected
     '''
 
     # Get the shape of the country of interest.

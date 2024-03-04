@@ -1,7 +1,7 @@
 import cdsapi
 import os
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 
 
@@ -11,9 +11,9 @@ c = cdsapi.Client()
 # Define the CORDEX variable to download.
 # CORDEX_variable_name = '10m_wind_speed'
 # CORDEX_variable_name = '2m_air_temperature'
-# CORDEX_variable_name = 'surface_solar_radiation_downwards'
+CORDEX_variable_name = 'surface_solar_radiation_downwards'
 # CORDEX_variable_name = 'surface_upwelling_shortwave_radiation'
-CORDEX_variable_name = 'total_run_off_flux'
+# CORDEX_variable_name = 'total_run_off_flux'
 
 # The total runoff flux is available at 6-hourly resolution.
 if CORDEX_variable_name == 'total_run_off_flux':
@@ -24,7 +24,8 @@ else:
     CORDEX_time_resolution = '3hourly'
 
 # Some variables require an additional year in the settings, even though a single year is downloaded.
-if CORDEX_variable_name == '10m_wind_speed' or CORDEX_variable_name == '2m_air_temperature':
+if ((settings.dataset_info['global_climate_model'] == 'cnrm_cerfacs_cm5' or settings.dataset_info['global_climate_model'] == 'mohc_hadgem2_es') and
+    (CORDEX_variable_name == '10m_wind_speed' or CORDEX_variable_name == '2m_air_temperature')):
     additional_year = 1
 else:
     additional_year = 0

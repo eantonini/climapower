@@ -25,7 +25,7 @@ def main():
 
             country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
 
-            if general_utilities.get_years_for_calibration(country_info, 'hydropower'):
+            if general_utilities.get_years_for_calibration(country_info_series, 'hydropower'):
 
                 hydro_validation.validate_hydropower_inflow_time_series(country_info_series)
 

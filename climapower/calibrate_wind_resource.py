@@ -25,7 +25,7 @@ def main():
 
             country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
 
-            if general_utilities.get_years_for_calibration(country_info, 'wind'):
+            if general_utilities.get_years_for_calibration(country_info_series, 'wind'):
 
                 wind_validation.validate_wind_capacity_factor_time_series(country_info_series, offshore=False)
 

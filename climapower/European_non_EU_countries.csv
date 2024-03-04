@@ -1,6 +1,6 @@
 ,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for hydropower calibration,End year for hydropower calibration
 0,Albania,ALB,AL,TRUE,FALSE,,,,,,
-1,Bosnia and Herzegovina,BIH,BA,TRUE,FALSE,,,,,,
+1,Bosnia and Herzegovina,BIH,BA,FALSE,FALSE,,,,,,
 2,Kosovo,XKX,XK,FALSE,FALSE,,,,,,
 3,Montenegro,MNE,ME,TRUE,FALSE,,,,,,
 4,North Macedonia,MKD,MK,FALSE,FALSE,,,,,,

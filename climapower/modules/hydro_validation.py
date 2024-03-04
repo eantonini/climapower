@@ -131,16 +131,6 @@ def validate_hydropower_inflow_time_series(country_info, coventional_and_pumped_
         # Calculate the simulated hydropower inflow time series.
         aggregated_simulated_hydropower_inflow_time_series = get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage=coventional_and_pumped_storage)
 
-        # Assume mean hydraulic head of all the hydropower plants in the country.
-        if coventional_and_pumped_storage:
-            mean_hydraulic_head = 50 # m - For conventional and pumped storage hydropower plants
-        else:
-            mean_hydraulic_head = 10 # m - For run-of-river hydropower plants
-
-        # Convert the time series to unit of GWh.
-        j_to_gwh = 1/3.6e12
-        aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series*9.81*mean_hydraulic_head*j_to_gwh
-
         # Calculate the hydropower inflow time series estimated with data retreived from ENTSO-E. This is in unit of GWh.
         aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_storage=coventional_and_pumped_storage)/1e3
         

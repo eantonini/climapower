@@ -54,7 +54,7 @@ def get_wind_database(year, region_shape):
         
         # Rename variables and clean coordinates to match the atlite convention.
         ds = climate_utilities.rename_and_clean_coords(ds)
-        ds_ws10 = ds_ws10.rename({'10m_wind_speed': 'wnd10m'})
+        ds = ds.rename({'10m_wind_speed': 'wnd10m'})
     
     else:
         

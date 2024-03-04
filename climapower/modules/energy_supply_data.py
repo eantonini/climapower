@@ -316,8 +316,8 @@ def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_stor
     year : int
         Year of interest
     coventional_and_pumped_storage : bool, optional
-        If True, water reservoirs and pumped storage hydro power plants are aggregated together because of the inflow into the reservoirs.
-        If False, run-of-river hydro power plants are selected.
+        If True, water reservoirs and pumped storage hydro power plants are selected and aggregated together
+        If False, run-of-river hydro power plants are selected
 
     Returns
     -------
