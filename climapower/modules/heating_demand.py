@@ -126,7 +126,7 @@ def compute_aggregated_heating_demand(country_info):
     reference_year = 2015
 
     # Calculate the time series of the heating demand for the reference year and country. The time series has daily mean values and daily resolution.
-    reference_daily_heating_demand_time_series = get_heating_demand_time_series(region_shape, reference_year, settings.heating_daily_temperature_threshold, hour_shift=hour_shift, )
+    reference_daily_heating_demand_time_series = get_heating_demand_time_series(region_shape, reference_year, settings.heating_daily_temperature_threshold, hour_shift=hour_shift)
 
     # Aggregate the time series of the heating demand for the reference year.
     reference_aggregated_daily_heating_demand_time_series = general_utilities.aggregate_time_series(reference_daily_heating_demand_time_series, weights)

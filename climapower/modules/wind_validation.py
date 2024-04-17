@@ -122,10 +122,10 @@ def validate_wind_capacity_factor_time_series(country_info, offshore):
             
             # Calibrate the simulated capacity factor time series.
             aggregated_calibrated_capacity_factor_time_series, alpha, beta = calibrate_wind_capacity_factor_time_series(country_info, region_shape, year, offshore, plant_layout, aggregated_simulated_capacity_factor_time_series, aggregated_actual_capacity_factor_time_series)
-                
+
             # Save the calibration coefficients.
             validation_utilities.save_calibration_coefficients(country_info, year, 'wind', [alpha, beta], ['alpha', 'beta'], additional_info=('__offshore' if offshore else '__onshore'))
-                
+            
         if settings.make_plots:
 
             # Create a dataframe to compare the simulated and actual capacity factors.
@@ -134,7 +134,7 @@ def validate_wind_capacity_factor_time_series(country_info, offshore):
 
             # Add the calibrated time series if calculated.
             if settings.calibrate:
-                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_capacity_factor_time_series.values, index=aggregated_calibrated_capacity_factor_time_series['time'], columns=['calibrated'])) # type: ignore
+                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_capacity_factor_time_series.values, index=aggregated_calibrated_capacity_factor_time_series['time'], columns=['calibrated']))
             
             # Plot the comparison.
             figures.plot_installed_capacity(region_shape, year, 'wind___installed_capacity__' + ('offshore' if offshore else 'onshore'), plant_layout)

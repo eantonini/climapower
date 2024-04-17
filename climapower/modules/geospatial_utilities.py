@@ -102,6 +102,10 @@ def get_fraction_of_grid_cell_in_shape(region_shape, shapes):
     for ii in range(len(fraction_of_grid_cells_in_shape_np)):
         fraction_of_grid_cells_in_shape[str(shapes.index[ii])] = (('y', 'x'), fraction_of_grid_cells_in_shape_np[ii].reshape(len(cutout.data['y']),len(cutout.data['x'])))
     
+    # Multiply by the grid cell areas.
+    cell_areas = geometry.get_grid_cell_area()
+    fraction_of_grid_cells_in_shape = fraction_of_grid_cells_in_shape * cell_areas
+    
     fraction_of_grid_cells_in_shape = fraction_of_grid_cells_in_shape.chunk(settings.chunk_size_x_y)
 
     return fraction_of_grid_cells_in_shape

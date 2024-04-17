@@ -158,7 +158,7 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
     for year in range(settings.aggregation_start_year, settings.aggregation_end_year+1):
 
         # Calculate the inflow time series for the given year and country.
-        aggregated_inflow = get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin)
+        aggregated_inflow = get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
 
         if settings.read_hydropower_coefficients: 
             # Read the hydropower calibration coefficients.
@@ -172,7 +172,7 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
 
         # Add attributes to the aggregated time series.
         aggregated_inflow = aggregated_inflow.rename('Hydropower inflow')
-        aggregated_inflow = aggregated_inflow.assign_attrs(units='kg/h', description="Mass flow rate of water into the reservoirs")
+        aggregated_inflow = aggregated_inflow.assign_attrs(units='GWh', description='Energy associated to mass flow rate of water into the reservoirs')
 
         # Save the aggregated inflow.
         general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series' + ('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))

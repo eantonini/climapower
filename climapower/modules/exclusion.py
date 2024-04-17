@@ -133,7 +133,7 @@ def exclude_areas(country_info, excluder, resource_type, offshore):
         # Add protected areas to the exclusion container.
         excluder = exclude_wdpa_protected_areas(country_info, excluder)
 
-        # Add urban, industrial, and comercial areas to the exclusion container with a buffer of 500 m.
+        # Add urban, industrial, and commercial areas to the exclusion container with a buffer of 500 m.
         excluder = exclude_regions_based_on_corine(excluder, codes=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], buffer=500, crs=3035)
     
     return excluder

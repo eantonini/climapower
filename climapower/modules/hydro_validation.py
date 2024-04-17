@@ -72,11 +72,11 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     '''
 
     # Calculate the inflow time series for the given year and country.
-    aggregated_inflow = hydro_resource.get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin)
+    aggregated_inflow = hydro_resource.get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
 
     # Get the inflow time series in the previous year to make sure the resampled time series is complete.
     try:
-        aggregated_inflow_previous_year = hydro_resource.get_inflow_time_series(region_shape, year-1, basins_of_interests, fraction_of_grid_cell_in_each_basin)
+        aggregated_inflow_previous_year = hydro_resource.get_inflow_time_series(region_shape, year-1, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
     except FileNotFoundError:
         # Select the last seven days of the current year and assign them to the previous year.
         aggregated_inflow_previous_year = aggregated_inflow.sel(time=slice(pd.Timestamp(str(year+1)) - pd.Timedelta(days=7), pd.Timestamp(str(year+1))))
@@ -85,7 +85,7 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     
     # Get the inflow time series in the next year to make sure the resampled time series is complete.
     try:
-        aggregated_inflow_next_year = hydro_resource.get_inflow_time_series(region_shape, year+1, basins_of_interests, fraction_of_grid_cell_in_each_basin)
+        aggregated_inflow_next_year = hydro_resource.get_inflow_time_series(region_shape, year+1, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
     except FileNotFoundError:
         # Select the first seven days of the current year and assign them to the next year.
         aggregated_inflow_next_year = aggregated_inflow.sel(time=slice(pd.Timestamp(str(year)), pd.Timestamp(str(year)) + pd.Timedelta(days=7)))

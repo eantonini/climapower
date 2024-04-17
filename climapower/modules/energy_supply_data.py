@@ -362,7 +362,11 @@ def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_stor
         entsoe_reservoir_filling_level_time_series = get_extended_entsoe_hydropower_reservoir_filling_level(country_info, year, start_previous_period, end_previous_period, start_year, end_year, start_following_period, end_following_period)
 
         # Calculate the hydropower inflow time series using an energy balance. The hydropower inflow is the difference between the reservoir filling level at the end of the week and the reservoir filling level at the beginning of the week plus the hydropower generation during the week.
-        weekly_hydropower_inflow_time_series = entsoe_reservoir_filling_level_time_series[1:].values - entsoe_reservoir_filling_level_time_series[:-1].values + entsoe_weekly_water_reservoir_hydropower_generation_time_series[:-1].values + entsoe_weekly_pumped_storage_hydropower_generation_time_series[:-1].values - entsoe_weekly_pumped_storage_hydropower_consumption_time_series[:-1].values
+        weekly_hydropower_inflow_time_series = (entsoe_reservoir_filling_level_time_series[1:].values
+                                                - entsoe_reservoir_filling_level_time_series[:-1].values
+                                                + entsoe_weekly_water_reservoir_hydropower_generation_time_series[:-1].values
+                                                + entsoe_weekly_pumped_storage_hydropower_generation_time_series[:-1].values
+                                                - entsoe_weekly_pumped_storage_hydropower_consumption_time_series[:-1].values)
         weekly_hydropower_inflow_time_series = pd.Series(data=weekly_hydropower_inflow_time_series, index=entsoe_weekly_water_reservoir_hydropower_generation_time_series.index[:-1], name='Hydropower inflow')
 
     else:
