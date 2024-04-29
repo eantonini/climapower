@@ -120,7 +120,7 @@ def plot_cells(region_shape, cells_to_plot, variable_name, color_map):
     region_shape.plot(ax=ax, edgecolor='k', color='None')
 
     # Plot the grid.
-    cutout.grid.plot(ax=ax, color='None', edgecolor='grey') # type: ignore
+    cutout.grid.plot(ax=ax, color='None', edgecolor='grey')
 
     # Set the labels of the axes.
     ax.set_title(variable_name.replace('_', ' ').capitalize().replace('region', region_shape.index[0]))
@@ -231,10 +231,10 @@ def plot_comparison_in_year(region_shape, year, variable_name, compare):
         ax.set_ylabel('Inflow [GWh]')
     if secondary_axis:
         if 'wind' in variable_name or 'solar' in variable_name:
-            ax_secondary.set_ylabel('Capacity factor') # type: ignore
+            ax_secondary.set_ylabel('Capacity factor')
         elif 'hydro' in variable_name:
-            ax_secondary.set_ylabel('Inflow [GWh]') # type: ignore
-            ax_secondary.yaxis.label.set_color(colors['simulated']) # type: ignore
+            ax_secondary.set_ylabel('Inflow [GWh]')
+            ax_secondary.yaxis.label.set_color(colors['simulated'])
     
     # Rotate the xticks.
     for tick in ax.get_xticklabels():

@@ -58,7 +58,7 @@ for index, country_info in countries.iterrows():
         
         # fig, ax = plt.subplots()
         # regional_protected_areas.plot(ax=ax)
-        # region.plot(ax=ax, edgecolor="k", color="None") # type: ignore
+        # region.plot(ax=ax, edgecolor="k", color="None")
         
         regional_protected_areas.to_file(data_path+regional_folder_name+regional_protected_areas_filename)
         

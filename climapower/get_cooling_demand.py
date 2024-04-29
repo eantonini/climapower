@@ -15,7 +15,7 @@ def main():
     # Compute the aggregated solar capacity factor.
     if isinstance(country_info, pd.Series):
 
-        cooling_demand.compute_aggregated_cooling_demand(country)
+        cooling_demand.compute_aggregated_cooling_demand(country_info)
     
     else:
 

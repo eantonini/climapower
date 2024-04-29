@@ -180,7 +180,7 @@ def exctact_available_cells_with_best_resource(region_shape, availability_matrix
         cells_with_best_resource = cells_belonging_to_region
     
     # Rename the variable.
-    cells_with_best_resource = cells_with_best_resource.rename('Index') # type: ignore
+    cells_with_best_resource = cells_with_best_resource.rename('Index')
     
     # Plot the cells belonging to region, the cells with availability factor, and the cells with best resource.
     if settings.make_plots:
@@ -306,7 +306,7 @@ def get_population_density(country_info):
     y_list = np.linspace(-90, 90, int(180/0.25)+1)
 
     # Calculate the lateral bounds of the region of interest including a buffer layer of one degree.
-    region_bounds = region_shape.unary_union.buffer(1).bounds # type: ignore
+    region_bounds = region_shape.unary_union.buffer(1).bounds
 
     # Define the bins where to aggregate the population density data of the finer resolution.
     # The next(...) function in this case calculates the first value that satisfies the specified condition.
@@ -329,6 +329,6 @@ def get_population_density(country_info):
     # Rename coordinates and clean the dataset.
     population_density = population_density.rename({'x_bins': 'x', 'y_bins': 'y'})
     population_density = population_density.squeeze('band')
-    population_density = population_density.drop(['band', 'spatial_ref']) # type: ignore
+    population_density = population_density.drop(['band', 'spatial_ref'])
     
     return population_density

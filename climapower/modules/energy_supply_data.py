@@ -423,7 +423,7 @@ def get_opsd_generation_and_capacity(country_info, year, resource_type, offshore
     open_power_system_database = pd.read_csv(open_power_system_database_filename, parse_dates=True, index_col=0)
 
     # Remove the timezone from the index.
-    open_power_system_database.index = open_power_system_database.index.tz_convert(None) # type: ignore
+    open_power_system_database.index = open_power_system_database.index.tz_convert(None)
 
     # Keep only the generation time series for the given year and country.
     open_power_system_database = open_power_system_database[(open_power_system_database.index >= str(year)) & (open_power_system_database.index < str(year+1))]

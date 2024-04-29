@@ -129,7 +129,7 @@ def validate_solar_capacity_factor_time_series(country_info):
 
             # Add the calibrated time series if calculated.
             if settings.calibrate:
-                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_capacity_factor_time_series.values, index=aggregated_calibrated_capacity_factor_time_series['time'], columns=['calibrated'])) # type: ignore
+                compare = compare.combine_first(pd.DataFrame(data=aggregated_calibrated_capacity_factor_time_series.values, index=aggregated_calibrated_capacity_factor_time_series['time'], columns=['calibrated']))
 
             # Plot the comparison.
             figures.plot_installed_capacity(region_shape, year, 'solar___installed_capacity', plant_layout)

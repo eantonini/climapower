@@ -152,7 +152,7 @@ def get_solar_database(year, region_shape):
     ds = ds.unify_chunks()
 
     # Calculate the solar position.
-    sp = atlite.pv.solar_position.SolarPosition(ds) # type: ignore
+    sp = atlite.pv.solar_position.SolarPosition(ds)
     sp = sp.rename({v: f'solar_{v}' for v in sp.data_vars})
     
     # Merge the solar position dataset with the climate data dataset.

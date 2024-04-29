@@ -37,10 +37,10 @@ def get_solar_capacity_factor_time_series(country_info, region_shape, year, alph
     # Get solar panel data from atlite and set orientation.
     panel = atlite.resource.get_solarpanelconfig('CSi')
     orientation = 'latitude_optimal' # {'slope': 30.0, 'azimuth': 180.0}
-    orientation = atlite.pv.orientation.get_orientation(orientation) # type: ignore
+    orientation = atlite.pv.orientation.get_orientation(orientation)
 
     # Convert climate data to power.
-    time_series = atlite.convert.convert_pv(solar_database, panel, orientation, clearsky_model='simple') # type: ignore
+    time_series = atlite.convert.convert_pv(solar_database, panel, orientation, clearsky_model='simple')
 
     # Read the solar calibration coefficients.
     if settings.read_solar_coefficients: 
