@@ -31,8 +31,8 @@ dataset_info = {
     'historical_dataset' : 'ERA5',
     'future_dataset' : 'CORDEX',
     'representative_concentration_pathway' : 'rcp_2_6', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
-    'global_climate_model' : 'mpi_m_mpi_esm_lr', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'mohc_hadgem2_es'
-    'regional_climate_model' : 'clmcom_btu_cclm4_8_17' # 'cnrm_aladin63' or 'clmcom_btu_cclm4_8_17' or 'ictp_regcm4_6'
+    'global_climate_model' : 'miroc_miroc5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
+    'regional_climate_model' : 'clmcom_clm_cclm4_8_17' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
 }
 
 # Set the chunk size for the climate data.

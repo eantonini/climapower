@@ -89,7 +89,7 @@ def get_hourly_heating_intraday_profile(country_info, year):
             time_index_of_year_to_local_zone = time_index_of_year.tz_localize('UTC').tz_convert(country_timezone)
 
             # Assign to each hour in the time index the corresponding number of the hour in the week (from 0 to 167, 12am Monday to 11pm Sunday).
-            hour_of_the_week  = pd.Series(data=[24 * dt.weekday() + dt.hour for dt in time_index_of_year_to_local_zone], index=time_index_of_year.tz_localize('UTC'))
+            hour_of_the_week = pd.Series(data=[24 * dt.weekday() + dt.hour for dt in time_index_of_year_to_local_zone], index=time_index_of_year.tz_localize('UTC'))
 
             # Map the hour of the week to the intraday profile of the heating demand.
             hourly_intraday_profile  = hour_of_the_week.map(weekly_profile)
