@@ -1,12 +1,13 @@
 import os
 
 # Define if the code is running on a local machine or on zeus.
-on_zeus = True
+on_hpc = True
 
 # Set working directory and data directories.
 working_directory = os.getcwd()
 energy_data_directory = working_directory + '/energy_data'
-climate_data_directory = working_directory + '/climate_data'
+# climate_data_directory = working_directory + '/climate_data'
+climate_data_directory = '/work/cmcc/ea02323/climate_data'
 geospatial_data_directory = working_directory + '/geospatial_data'
 
 # Set folder where results will be saved.
@@ -30,9 +31,9 @@ dataset_info = {
     'focus_region' : 'Europe',
     'historical_dataset' : 'ERA5',
     'future_dataset' : 'CORDEX',
-    'representative_concentration_pathway' : 'rcp_2_6', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
-    'global_climate_model' : 'miroc_miroc5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
-    'regional_climate_model' : 'clmcom_clm_cclm4_8_17' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
+    'representative_concentration_pathway' : 'rcp_8_5', # 'rcp_8_5' or 'rcp_4_5' or 'rcp_8_5'
+    'global_climate_model' : 'mpi_m_mpi_esm_lr', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
+    'regional_climate_model' : 'ictp_regcm4_6' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
 }
 
 # Set the chunk size for the climate data.
@@ -53,7 +54,7 @@ validation_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'e
 
 # Decide whether to calibrate the results. The calibration is implemented for wind capacity factors and hydropower inflow time series.
 calibration_folder = working_directory + '/calibration_results'
-calibrate = False
+calibrate = True
 if calibrate:
     if not os.path.exists(calibration_folder):
         os.mkdir(calibration_folder)

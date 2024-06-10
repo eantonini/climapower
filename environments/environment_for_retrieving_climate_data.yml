@@ -9,3 +9,4 @@ dependencies:
   - xarray
   - cdsapi
   - xesmf
+  - netcdf4

@@ -151,10 +151,10 @@ def harmonize_era5_solar_data(variable_datasets, year):
     '''
     
     # Define the target time coordinate.
-    target_time = pd.date_range(str(year), str(year+1), freq='H')[:-1]
+    target_time = pd.date_range(str(year), str(year+1), freq='h')[:-1]
     
     # Define the actual time coordinate of the original data with an additional element at the end.
-    actual_time = pd.date_range(str(year), str(year+1), freq='H')[:-1] + pd.to_timedelta('-30 minutes')
+    actual_time = pd.date_range(str(year), str(year+1), freq='h')[:-1] + pd.to_timedelta('-30 minutes')
     actual_time = actual_time.insert(len(actual_time), actual_time[-1] + pd.to_timedelta('60 minutes'))
     
     # Define the dataset containing the harmonized data.
@@ -163,24 +163,22 @@ def harmonize_era5_solar_data(variable_datasets, year):
     # For each dataset in the list, and for each variable in the dataset, perform the caclulation.
     for variable_dataset in variable_datasets:
 
-        for variable_name in list(variable_dataset.data_vars):
+        if 'time' in variable_dataset.dims:
 
-            if 'time' in variable_dataset[variable_name].dims:
-
-                # Create an additional element to be places at the end of the original dataset. This element is equal to the first element of the original dataset.
-                extend_right = variable_dataset[variable_name].loc[variable_dataset['time']==variable_dataset['time'][0]]
-                extend_right['time'] = np.atleast_1d(variable_dataset['time'][-1] + pd.to_timedelta('60 minutes'))
+            # Create an additional element to be places at the end of the original dataset. This element is equal to the first element of the original dataset.
+            extend_right = variable_dataset.loc[variable_dataset['time']==variable_dataset['time'][0]]
+            extend_right['time'] = np.atleast_1d(variable_dataset['time'][-1] + pd.to_timedelta('60 minutes'))
                 
-                # Add the additional element to the original dataset. 
-                extended_data = xr.combine_by_coords([variable_dataset[variable_name], extend_right])[variable_name]
-                extended_data['time'] = actual_time
+            # Add the additional element to the original dataset. 
+            extended_data = xr.combine_by_coords([variable_dataset, extend_right])
+            extended_data['time'] = actual_time
 
-                # Interpolate values to the target time coordinate.
-                ds[variable_name] = extended_data.interp(time=target_time)
+            # Interpolate values to the target time coordinate.
+            ds = xr.merge([ds,extended_data.interp(time=target_time)])
 
-            else:
+        else:
 
-                ds[variable_name] = variable_dataset[variable_name]
+            ds = xr.merge([ds,variable_dataset])
     
     return ds
 
@@ -205,7 +203,7 @@ def harmonize_cordex_data(variable_datasets, year, resolution):
     '''
     
     # Define the target time coordinate.
-    target_time = pd.date_range(str(year), str(year+1), freq='H')[:-1]
+    target_time = pd.date_range(str(year), str(year+1), freq='h')[:-1]
     
     # Define the dataset containing the harmonized data.
     ds = xr.Dataset()
@@ -213,25 +211,23 @@ def harmonize_cordex_data(variable_datasets, year, resolution):
     # For each dataset in the list, and for each variable in the dataset, perform the caclulation.
     for variable_dataset in variable_datasets:
 
-        for variable_name in variable_dataset.data_vars:
+        if 'time' in variable_dataset.dims:
 
-            if 'time' in variable_dataset[variable_name].dims:
-
-                # Create additional elements to be placed at the beginning and end of the original dataset. The elements are equal to the last and first elements of the original dataset.
-                extend_left = variable_dataset[variable_name].loc[variable_dataset['time']==variable_dataset['time'][-1]]
-                extend_left['time'] = np.atleast_1d(variable_dataset['time'][0] + pd.to_timedelta('-'+resolution))
-                extend_right = variable_dataset[variable_name].loc[variable_dataset['time']==variable_dataset['time'][0]]
-                extend_right['time'] = np.atleast_1d(variable_dataset['time'][-1] + pd.to_timedelta(resolution))
+            # Create additional elements to be placed at the beginning and end of the original dataset. The elements are equal to the last and first elements of the original dataset.
+            extend_left = variable_dataset.loc[variable_dataset['time']==variable_dataset['time'][-1]]
+            extend_left['time'] = np.atleast_1d(variable_dataset['time'][0] + pd.to_timedelta('-'+resolution))
+            extend_right = variable_dataset.loc[variable_dataset['time']==variable_dataset['time'][0]]
+            extend_right['time'] = np.atleast_1d(variable_dataset['time'][-1] + pd.to_timedelta(resolution))
                 
-                # Add the additional elements to the original dataset.
-                extended_data = xr.combine_by_coords([extend_left, variable_dataset[variable_name], extend_right])[variable_name]
+            # Add the additional elements to the original dataset.
+            extended_data = xr.combine_by_coords([extend_left, variable_dataset, extend_right])
 
-                # Interpolate values to the target time coordinate.
-                ds[variable_name] = extended_data.interp(time=target_time)
+            # Interpolate values to the target time coordinate.
+            ds = xr.merge([ds,extended_data.interp(time=target_time)])
 
-            else:
+        else:
 
-                ds[variable_name] = variable_dataset[variable_name]
+            ds = xr.merge([ds,variable_dataset])
     
     return ds
 
@@ -255,12 +251,10 @@ def convert_solar_energy_to_power(variable_datasets):
     converted_variable_datasets = []
 
     for variable_dataset in variable_datasets:
-
-        for variable_name in variable_dataset.data_vars:
-
-            # Convert the variable of interest to power by dividing by the length of the time step.
-            variable_dataset[variable_name] = variable_dataset[variable_name] / (60.0 * 60.0)
-            variable_dataset[variable_name].attrs['units'] = 'W m**-2'
+        
+        # Convert the variable of interest to power by dividing by the length of the time step.
+        variable_dataset = variable_dataset / (60.0 * 60.0)
+        variable_dataset.attrs['units'] = 'W m**-2'
 
         converted_variable_datasets.append(variable_dataset)
     
@@ -294,21 +288,31 @@ def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
     # For each variable of interest, load the corresponding dataset.
     for variable_name in variable_names:
 
-        if variable_name == 'toa_incident_solar_radiation' and CORDEX_data:
-            variable_dataset = xr.open_dataset(directories.get_tisr_path_for_cordex(year), chunks=settings.chunk_size_lon_lat)
-        
-        elif variable_name == 'forecast_surface_roughness' and CORDEX_data:
-            variable_dataset = xr.open_dataset(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
-        
-        elif variable_name == 'total_run_off_flux' and CORDEX_data:
-            variable_dataset = xr.open_dataset(directories.get_climate_data_path(year, variable_name, CORDEX_time_resolution='6hourly'), chunks=settings.chunk_size_lon_lat)
-        
-        elif variable_name == 'height':
-            variable_dataset = xr.open_dataset(settings.climate_data_directory+'/'+'ERA5-geopotential.nc', chunks=settings.chunk_size_lon_lat)
+        if variable_name == 'height':
+            variable_dataset = xr.open_dataarray(settings.climate_data_directory+'/'+'ERA5__Europe__surface_geopotential.nc', chunks=settings.chunk_size_lon_lat)
             variable_dataset = variable_dataset/9.80665
+
+        elif CORDEX_data:
+
+            if variable_name == 'toa_incident_solar_radiation':
+                variable_dataset = xr.open_dataarray(directories.get_tisr_path_for_cordex(year), chunks=settings.chunk_size_lon_lat)
+        
+            elif variable_name == 'forecast_surface_roughness':
+                variable_dataset = xr.open_dataarray(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
+        
+            elif variable_name == 'total_run_off_flux':
+                variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='6hourly'), chunks=settings.chunk_size_lon_lat)
+        
+            else:
+                variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='3hourly'), chunks=settings.chunk_size_lon_lat)
         
         else:
-            variable_dataset = xr.open_dataset(directories.get_climate_data_path(year, variable_name), chunks=settings.chunk_size_lon_lat)
+            variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name), chunks=settings.chunk_size_lon_lat)
+        
+        # Check if the time coordinate has dtype equal to datetime64
+        if 'time' in variable_dataset.dims:
+            if not isinstance(variable_dataset.indexes['time'], pd.DatetimeIndex):
+                variable_dataset['time'] = variable_dataset.indexes['time'].to_datetimeindex()
         
         # Clip the dataset to the region bounding box.
         variable_dataset = clip_to_region_containing_box(variable_dataset, region_shape)

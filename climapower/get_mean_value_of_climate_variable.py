@@ -3,7 +3,7 @@ import numpy as np
 import os
 from datetime import datetime
 
-import modules.settings as settings
+import settings
 import modules.directories as directories
 
 # Define the variable to average

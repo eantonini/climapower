@@ -12,6 +12,7 @@ dependencies:
   - netcdf4
   - pandas
   - geopandas
+  - openpyxl
   - rasterio
   - shapely
   - cartopy

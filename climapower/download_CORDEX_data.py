@@ -9,8 +9,8 @@ import modules.directories as directories
 c = cdsapi.Client()
 
 # Define the CORDEX variable to download.
-# CORDEX_variable_name = '10m_wind_speed'
-CORDEX_variable_name = '2m_air_temperature'
+CORDEX_variable_name = '10m_wind_speed'
+# CORDEX_variable_name = '2m_air_temperature'
 # CORDEX_variable_name = 'surface_solar_radiation_downwards'
 # CORDEX_variable_name = 'surface_upwelling_shortwave_radiation'
 # CORDEX_variable_name = 'total_run_off_flux'
@@ -35,12 +35,12 @@ for year in range(2010,2041):
 # for year in range(2041,2071):
 # for year in range(2071,2101):
 
-    data_folder = directories.get_climate_data_path(year, CORDEX_variable_name, CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections', return_folder=True)
+    data_folder = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='projections', return_folder=True)
 
     if not os.path.exists(data_folder):
         os.makedirs(data_folder)
 
-    data_file = directories.get_climate_data_path(year, CORDEX_variable_name, CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections').replace('.nc', '.tar.gz')
+    data_file = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='projections').replace('.nc', '.tar.gz')
     
     c.retrieve(
     'projections-cordex-domains-single-levels',

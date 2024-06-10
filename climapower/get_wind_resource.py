@@ -30,7 +30,6 @@ def main():
             country_info_series = country_info.loc[country_info['Name']==country_name].squeeze()
 
             if not os.path.exists(directories.get_postprocessed_data_path(country_info_series, 'wind__capacity_factor_time_series__onshore')):
-
                 wind_resource.compute_aggregated_wind_capacity_factor(country_info_series, offshore=False)
 
             if not os.path.exists(directories.get_postprocessed_data_path(country_info_series, 'wind__capacity_factor_time_series__offshore')) and country_info_series['Offshore wind']:

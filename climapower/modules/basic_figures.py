@@ -6,7 +6,7 @@ import settings
 import modules.climate_utilities as climate_utilities
 
 
-def plot_shape(region_shape):
+def plot_shape(region_shape, offshore):
     '''
     Plot the shape of the region of interest.
 
@@ -14,6 +14,8 @@ def plot_shape(region_shape):
     ----------
     region_shape : geopandas.GeoDataFrame
         Geopandas dataframe containing the shape of the region of interest
+    offshore : bool
+        True if analyzing offshore wind
     '''
     
     # Define the plot limits based on a buffer layer equal to one degree.
@@ -27,27 +29,32 @@ def plot_shape(region_shape):
     region_shape.plot(ax=ax)
 
     # Set the title and the labels of the axes.
-    ax.set_title(region_shape.index[0])
+    ax.set_title(region_shape.index[0] + (' offshore area' if offshore else ' onshore area'))
     ax.set_xlabel('Longitude [deg]')
-    ax.set_ylabel('Latitude [deg]')    
+    ax.set_ylabel('Latitude [deg]')
 
     # Set the axis limits.
     ax.set_xlim(lateral_bounds[0], lateral_bounds[2])
     ax.set_ylim(lateral_bounds[1], lateral_bounds[3])
 
+    # Set the name of the country.
+    country_name = region_shape.index[0]
+    if offshore:
+        country_name = country_name + '__offshore_area'
+    else:
+        country_name = country_name + '__onshore_area'
+
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape.index[0].replace(' ', '_')+'__shape.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+country_name+'__shape.png', bbox_inches = 'tight', dpi = 300)
 
 
-def plot_eligible_fraction(region_shape, region_shape_with_new_crs, masked, transform, eligible_share):
+def plot_eligible_fraction(region_shape_with_new_crs, masked, transform, eligible_share, resource_type, offshore):
     '''
     Plot the eligible area of the region of interest.
 
     Parameters
     ----------
-    region_shape : geopandas.GeoDataFrame
-        Geopandas dataframe containing the shape of the region of interest in the original coordinate reference system (lon/lat)
     region_shape_with_new_crs : geopandas.GeoDataFrame
         Geopandas dataframe containing the shape of the region of interest with a new coordinate reference system
     masked : numpy.ndarray
@@ -56,6 +63,10 @@ def plot_eligible_fraction(region_shape, region_shape_with_new_crs, masked, tran
         Affine transformation
     eligible_share : float
         Share of the total eligible area
+    resource_type : str
+        Type of resource
+    offshore : bool
+        True if analyzing offshore wind
     '''
 
     # Calculate the lenght of a degree of latitude.
@@ -85,12 +96,21 @@ def plot_eligible_fraction(region_shape, region_shape_with_new_crs, masked, tran
     ax.set_xlim([lateral_bounds[0], lateral_bounds[2]])
     ax.set_ylim([lateral_bounds[1], lateral_bounds[3]])
 
+    # Set the name of the country and the resource type.
+    country_name_and_resource = region_shape_with_new_crs.index[0]
+    if resource_type == 'wind' and offshore:
+        country_name_and_resource = country_name_and_resource + '__wind__offshore'
+    elif resource_type == 'wind' and not offshore:
+        country_name_and_resource = country_name_and_resource + '__wind__onshore'
+    elif resource_type == 'solar':
+        country_name_and_resource = country_name_and_resource + '__solar'
+
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape_with_new_crs.index[0].replace(' ', '_')+'__eligible_area.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+country_name_and_resource+'__eligible_area.png', bbox_inches = 'tight', dpi = 300)
 
 
-def plot_cells(region_shape, cells_to_plot, variable_name, color_map):
+def plot_cells(region_shape, resource_type, offshore, cells_to_plot, variable_name, color_map):
     '''
     Plot the cells of interest, i.e., the cells belonging to the region of interest, the cells with the availability factor, and the cells with the best resource.
 
@@ -98,6 +118,10 @@ def plot_cells(region_shape, cells_to_plot, variable_name, color_map):
     ----------
     region_shape : geopandas.GeoDataFrame
         Geopandas dataframe containing the shape of the region of interest
+    resource_type : str
+        Type of resource
+    offshore : bool
+        True if analyzing offshore wind
     cells_to_plot : xarray.DataArray
         DataArray containing the cells to plot
     variable_name : str
@@ -122,14 +146,23 @@ def plot_cells(region_shape, cells_to_plot, variable_name, color_map):
     # Plot the grid.
     cutout.grid.plot(ax=ax, color='None', edgecolor='grey')
 
-    # Set the labels of the axes.
-    ax.set_title(variable_name.replace('_', ' ').capitalize().replace('region', region_shape.index[0]))
+    # Set the title and labels of the axes.
+    ax.set_title(variable_name.replace('_', ' ').capitalize())
     ax.set_xlabel('Longitude [deg]')
     ax.set_ylabel('Latitude [deg]')
 
+    # Set the name of the country and the resource type.
+    country_name_and_resource = region_shape.index[0]
+    if resource_type == 'wind' and offshore:
+        country_name_and_resource = country_name_and_resource + '__wind__offshore'
+    elif resource_type == 'wind' and not offshore:
+        country_name_and_resource = country_name_and_resource + '__wind__onshore'
+    elif resource_type == 'solar':
+        country_name_and_resource = country_name_and_resource + '__solar'
+
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape.index[0].replace(' ', '_')+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+country_name_and_resource+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
 
 
 def plot_installed_capacity(region_shape, year, variable_name, plant_layout):
@@ -171,7 +204,7 @@ def plot_installed_capacity(region_shape, year, variable_name, plant_layout):
 
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape.index[0].replace(' ', '_')+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+region_shape.index[0]+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
 
 
 def plot_comparison_in_year(region_shape, year, variable_name, compare):
@@ -243,7 +276,7 @@ def plot_comparison_in_year(region_shape, year, variable_name, compare):
 
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape.index[0].replace(' ', '_')+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+region_shape.index[0]+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
 
 
 def plot_comparison_in_period(region_shape, year, variable_name, compare):
@@ -289,4 +322,4 @@ def plot_comparison_in_period(region_shape, year, variable_name, compare):
 
     # Save the figure.
     if settings.save_plots:
-        fig.savefig(settings.figure_folder+'/'+region_shape.index[0].replace(' ', '_')+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)
+        fig.savefig(settings.figure_folder+'/'+region_shape.index[0]+'__'+str(year)+'__'+variable_name+'.png', bbox_inches = 'tight', dpi = 300)

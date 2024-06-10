@@ -34,8 +34,8 @@ def calibrate_hydropower_inflow_time_series(simulated_weekly_hydropower_inflow_t
     '''
 
     # Downsample the time series to monthly resolution.
-    simulated_monthly_hydropower_inflow_time_series = simulated_weekly_hydropower_inflow_time_series.resample('1M').sum()
-    actual_monthly_hydropower_inflow_time_series = actual_weekly_hydropower_inflow_time_series.resample('1M').sum()
+    simulated_monthly_hydropower_inflow_time_series = simulated_weekly_hydropower_inflow_time_series.resample('1ME').sum()
+    actual_monthly_hydropower_inflow_time_series = actual_weekly_hydropower_inflow_time_series.resample('1ME').sum()
 
     # Calculate the retain factor for each month of the year.
     retain_factors = actual_monthly_hydropower_inflow_time_series/simulated_monthly_hydropower_inflow_time_series

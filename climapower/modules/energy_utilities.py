@@ -226,13 +226,13 @@ def resample_to_hourly(time_series):
     time_series_start = time_series.index[0]
     time_series_end = time_series.index[-1]
 
-    if len(time_series) > len(pd.date_range(time_series_start, time_series_end, freq='H')):
+    if len(time_series) > len(pd.date_range(time_series_start, time_series_end, freq='h')):
 
         # The resampling is done by taking the mean of the values in the bins. The offset is set to -0.5H so that the bins are centered on the hour. The bin labels are set to the left bin edge.
-        time_series = time_series.resample('1H', offset='-0.5H').mean()[:-1]
+        time_series = time_series.resample('1h', offset='-0.5h').mean()[:-1]
 
         # Set the index of the generation time series to the correct hourly time series.
-        time_series.index = pd.date_range(time_series_start, time_series_end, freq='H')
+        time_series.index = pd.date_range(time_series_start, time_series_end, freq='h')
 
         print('Resampled to hourly resolution.')
     

@@ -5,14 +5,14 @@ import modules.directories as directories
 
 
 # Define the reference ERA5 variable. Irrelevant which variable is chosen.
-ERA5_variable_name = '100m_u_component_of_wind'
+ERA5_variable_name = '2m_temperature'
 
 # Define the CORDEX variable to be regridded.
-# CORDEX_variable_name = {'long': '10m_wind_speed', 'short': 'sfcWind'}
+CORDEX_variable_name = {'long': '10m_wind_speed', 'short': 'sfcWind'}
 # CORDEX_variable_name = {'long': '2m_air_temperature', 'short': 'tas'}
 # CORDEX_variable_name = {'long': 'surface_solar_radiation_downwards', 'short': 'rsds'}
 # CORDEX_variable_name = {'long': 'surface_upwelling_shortwave_radiation', 'short': 'rsus'}
-CORDEX_variable_name = {'long': 'total_run_off_flux', 'short': 'mrro'}
+# CORDEX_variable_name = {'long': 'total_run_off_flux', 'short': 'mrro'}
 
 if CORDEX_variable_name['long'] == 'total_run_off_flux':
     CORDEX_time_resolution = '6hourly'
@@ -21,7 +21,7 @@ else:
 
 # Load the ERA5 data.
 ds_era5 = xr.open_dataset(directories.get_climate_data_path(2010, ERA5_variable_name, climate_data_source='historical'), engine='netcdf4')
-ds_cordex = xr.open_dataset(directories.get_climate_data_path(2010, CORDEX_variable_name['long'], CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections').replace('.nc', '__original.nc'), engine='netcdf4')
+ds_cordex = xr.open_dataset(directories.get_climate_data_path(2010, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='projections').replace('.nc', '__original.nc'), engine='netcdf4')
 
 # Rename coordinates of ds_era5 to match xesmf requirements.
 ds_era5 = ds_era5.rename({'latitude': 'lat', 'longitude': 'lon'})
@@ -35,7 +35,7 @@ end_year = 2100
 for year in range(start_year,end_year+1):
     
     # Get the full data path of the CORDEX data.
-    data_file = directories.get_climate_data_path(year, CORDEX_variable_name['long'], CORDEX_time_resolution=CORDEX_time_resolution, climate_data_source='projections')
+    data_file = directories.get_climate_data_path(year, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='projections')
 
     # Load the CORDEX data.
     ds_cordex = xr.open_dataset(data_file.replace('.nc', '__original.nc'), engine='netcdf4')

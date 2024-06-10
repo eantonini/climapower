@@ -31,7 +31,7 @@ def compute_aggregated_temperature(country_info):
         aggregated_temperature_time_series = general_utilities.aggregate_time_series(temperature_time_series, weights)
 
         # Add name and attributes to the aggregated time series.
-        aggregated_temperature_time_series = aggregated_temperature_time_series.rename('Temperature')
+        aggregated_temperature_time_series = aggregated_temperature_time_series['temperature'].rename('Temperature')
         aggregated_temperature_time_series = aggregated_temperature_time_series.assign_attrs(units='K', description='Temperature')
     
         # Save the aggregated time series of the heating demand.

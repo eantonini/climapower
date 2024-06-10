@@ -543,7 +543,7 @@ def get_era5_resource_time_series(country_info, year, resource_type, offshore=Fa
     era5_resource_time_series = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='historical'))
 
     # Keep only the time series for the given year.
-    era5_resource_time_series = era5_resource_time_series.loc[pd.date_range(str(year), str(year+1), freq='H')[:-1]]
+    era5_resource_time_series = era5_resource_time_series.loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
     
     return era5_resource_time_series
 

@@ -59,13 +59,16 @@ def get_hourly_heating_intraday_profile(country_info, year):
     '''
 
     # Create a pandas DatetimeIndex with the hours of the year.
-    time_index_of_year = pd.date_range(str(year), str(year+1), freq='H')[:-1]
+    time_index_of_year = pd.date_range(str(year), str(year+1), freq='h')[:-1]
     
     # Read the intraday profiles of the heating demand for the given country.
     intraday_profiles = pd.read_csv(settings.energy_data_directory+'/heat_load_profile_BDEW.csv', index_col=0)
 
     # Get the country time zone.
-    country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
+    if country_info['Name'] == 'Kosovo':
+        country_timezone = pytz.timezone('Europe/Belgrade')
+    else:
+        country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
     
     # Define the sectors and uses of the heating demand.
     sectors = ['residential', 'services']
@@ -155,7 +158,7 @@ def compute_aggregated_heating_demand(country_info):
         interannual_change = heating_degree_days / reference_heating_degree_days
 
         # Upsample the time series of the heating demand to hourly resolution. The series has still daily mean values but hourly resolution.
-        aggregated_daily_heating_demand_time_series_at_hourly_resolution = aggregated_daily_heating_demand_time_series.reindex(time=pd.date_range(str(year), str(year+1), freq='H')[:-1], method='ffill')
+        aggregated_daily_heating_demand_time_series_at_hourly_resolution = aggregated_daily_heating_demand_time_series.reindex(time=pd.date_range(str(year), str(year+1), freq='h')[:-1], method='ffill')
 
         # Read the intraday profiles of the heating demand for the given country.
         hourly_intraday_profiles = get_hourly_heating_intraday_profile(country_info, year)

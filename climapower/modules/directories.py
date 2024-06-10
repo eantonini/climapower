@@ -1,7 +1,7 @@
 import settings
 
 
-def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly', climate_data_source=None, return_folder=False):
+def get_climate_data_path(year, variable_name, time_resolution='hourly', climate_data_source=None, return_folder=False):
     '''
     Get full data path based on the year considered.
 
@@ -11,8 +11,8 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
         Year of interest
     variable_name : str
         Name of the variable of interest
-    CORDEX_time_resolution : str, optional
-        Time resolution of the CORDEX data ('3hourly' or '6hourly')
+    time_resolution : str, optional
+        Time resolution of the data ('hourly' for ERA5 data, and '3hourly' or '6hourly' for CORDEX data)
     climate_data_source : str, optional
         Climate data source that can overwrite the default one set in settings.py
     return_folder : bool, optional
@@ -36,7 +36,7 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
     # Get the full data path.
     if climate_data_source == 'historical':
                               
-        if settings.on_zeus:
+        if settings.on_hpc:
 
             climate_data_path += (settings.dataset_info['historical_dataset'] + '__' +
                                   settings.dataset_info['focus_region'] + '__' +
@@ -44,13 +44,10 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
             
         if return_folder:
             return climate_data_path
-            
-        climate_data_path += (settings.dataset_info['historical_dataset'] + '__' +
-                              '{:d}__hourly_'.format(year) + variable_name + '.nc')
     
     elif climate_data_source == 'projections':
                               
-        if settings.on_zeus:
+        if settings.on_hpc:
 
             climate_data_path += (settings.dataset_info['future_dataset'] + '__' + 
                                   settings.dataset_info['focus_region'] + '__' +
@@ -62,8 +59,7 @@ def get_climate_data_path(year, variable_name, CORDEX_time_resolution='3hourly',
         if return_folder:
             return climate_data_path
         
-        climate_data_path += (settings.dataset_info['future_dataset'] + '__' +
-                              '{:d}__'.format(year) + CORDEX_time_resolution + '_' + variable_name + '.nc')
+    climate_data_path += ('{:d}__'.format(year) + time_resolution + '_' + variable_name + '.nc')
     
     return climate_data_path
 
@@ -83,7 +79,7 @@ def get_mean_climate_data_path(variable_name):
         Full data path of mean climate data filename
     '''
     
-    mean_climate_data_path = (settings.result_folder + '/' +
+    mean_climate_data_path = (settings.climate_data_directory + '/' +
                               settings.dataset_info['historical_dataset'] + '__' +
                               settings.dataset_info['focus_region'] + '__' +
                               '{:d}_'.format(settings.start_year_for_mean_climate_variable) +
@@ -113,7 +109,7 @@ def get_tisr_path_for_cordex(year):
         return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
     
     
-    tisr_path_for_cordex = (settings.result_folder + '/' +
+    tisr_path_for_cordex = (settings.climate_data_directory + '/' +
                             settings.dataset_info['historical_dataset'] + '__' +
                             settings.dataset_info['focus_region'] + '__')
     
@@ -147,7 +143,7 @@ def get_postprocessed_data_path(country_info, variable_name, climate_data_source
     if climate_data_source is None:
         climate_data_source = settings.climate_data_source
     
-    postprocessed_data_path = settings.result_folder + '/'
+    postprocessed_data_path = settings.result_folder + '/' + country_info['ISO Alpha-2'] + '__'
     
     if climate_data_source == 'historical':
         
@@ -160,7 +156,7 @@ def get_postprocessed_data_path(country_info, variable_name, climate_data_source
                                     settings.dataset_info['global_climate_model'].upper() + '__' +
                                     settings.dataset_info['regional_climate_model'].upper() + '__')
     
-    postprocessed_data_path += country_info['ISO Alpha-2'] + '__' + variable_name + '.nc'
+    postprocessed_data_path += variable_name + '.nc'
     
     return postprocessed_data_path
 
@@ -184,7 +180,7 @@ def get_calibration_coefficients_data_path(country_info, resource_type, addition
         Full data path of calibration coefficients filename
     '''
 
-    coefficients_data_path  = settings.calibration_folder + '/'
+    coefficients_data_path  = settings.calibration_folder + '/' + country_info['ISO Alpha-2'] + '__'
 
     if settings.climate_data_source == 'historical':
 
@@ -192,12 +188,14 @@ def get_calibration_coefficients_data_path(country_info, resource_type, addition
 
     elif settings.climate_data_source == 'projections':
 
-        coefficients_data_path += settings.dataset_info['future_dataset'] + '__'
+        coefficients_data_path += (settings.dataset_info['future_dataset'] + '__RCP_2_6__' +
+                                   settings.dataset_info['global_climate_model'].upper() + '__' +
+                                   settings.dataset_info['regional_climate_model'].upper() + '__')
     
     else:
 
         raise AssertionError('The climate data source is not valid.')
     
-    coefficients_data_path += country_info['ISO Alpha-2'] + '__' + resource_type + '__calibration_coefficients' + additional_info + '.csv'
+    coefficients_data_path += resource_type + '__calibration_coefficients' + additional_info + '.csv'
     
     return coefficients_data_path

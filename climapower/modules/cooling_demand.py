@@ -63,17 +63,24 @@ def compute_aggregated_cooling_demand(country_info):
     # Define a reference year for which we have total cooling demand data in kWh/year.
     reference_year = 2015
 
-    # Calculate the time series of the cooling demand for the reference year and country. The time series has daily mean values and daily resolution.
-    reference_daily_cooling_demand_time_series = get_cooling_demand_time_series(region_shape, reference_year, settings.cooling_daily_temperature_threshold, hour_shift=hour_shift)
+    # Some cold contries have a cooling demand equal to zero in certain years. Change the year if this is the case
+    reference_cooling_degree_days = 0
+    while reference_cooling_degree_days == 0:
 
-    # Select the days in the reference year. Typically there is one extra day in the time series, so we remove it.
-    reference_daily_cooling_demand_time_series = reference_daily_cooling_demand_time_series.sel(time=pd.date_range(str(reference_year), str(reference_year+1), freq='D')[:-1])
+        # Calculate the time series of the cooling demand for the reference year and country. The time series has daily mean values and daily resolution.
+        reference_daily_cooling_demand_time_series = get_cooling_demand_time_series(region_shape, reference_year, settings.cooling_daily_temperature_threshold, hour_shift=hour_shift)
 
-    # Aggregate the time series of the cooling demand for the reference year.
-    reference_aggregated_daily_cooling_demand_time_series = general_utilities.aggregate_time_series(reference_daily_cooling_demand_time_series, weights)
+        # Select the days in the reference year. Typically there is one extra day in the time series, so we remove it.
+        reference_daily_cooling_demand_time_series = reference_daily_cooling_demand_time_series.sel(time=pd.date_range(str(reference_year), str(reference_year+1), freq='D')[:-1])
 
-    # Calculate the total cooling degree days in the reference year.
-    reference_cooling_degree_days = float(reference_aggregated_daily_cooling_demand_time_series.sum(dim='time'))
+        # Aggregate the time series of the cooling demand for the reference year.
+        reference_aggregated_daily_cooling_demand_time_series = general_utilities.aggregate_time_series(reference_daily_cooling_demand_time_series, weights)
+
+        # Calculate the total cooling degree days in the reference year.
+        reference_cooling_degree_days = float(reference_aggregated_daily_cooling_demand_time_series.sum(dim='time'))
+        reference_year += 1
+    
+    print('Reference year for cooling demand in '+country_info['Name']+' changed to '+str(reference_year-1))
 
     for year in range(settings.aggregation_start_year, settings.aggregation_end_year+1):
 
@@ -94,7 +101,7 @@ def compute_aggregated_cooling_demand(country_info):
 
         # Filter the time series of the cooling demand such that it is 0 or 1 (no cooling or cooling). Then upsample it to hourly resolution.
         cooling_switch = daily_cooling_demand_time_series.where(daily_cooling_demand_time_series==0, 1)
-        cooling_switch = cooling_switch.reindex(time=pd.date_range(str(year), str(year+1), freq='H')[:-1], method='ffill')
+        cooling_switch = cooling_switch.reindex(time=pd.date_range(str(year), str(year+1), freq='h')[:-1], method='ffill')
         
         # Calculate the hourly time series of the cooling demand.
         hourly_cooling_demand_time_series = get_cooling_demand_time_series(region_shape, year, settings.cooling_hourly_temperature_threshold, hourly_series=True)

@@ -11,7 +11,7 @@ import modules.climate_data as climate_data
 import modules.basic_figures as figures
 
 
-def get_eligible_fraction(region_shape, excluder):
+def get_eligible_fraction(region_shape, excluder, resource_type, offshore):
     '''
     Calculate fraction of the total eligible land and plot that on a map.
 
@@ -21,6 +21,10 @@ def get_eligible_fraction(region_shape, excluder):
         GeoDataFrame containing the information of the region of interest
     excluder : atlite.gis.ExclusionContainer
         Exclusion container containing the exclusion areas
+    resource_type : str
+        Type of resource ('wind' or 'solar')
+    offshore : bool
+        True if the resource of interest is offshore wind
 
     Returns
     -------
@@ -39,7 +43,7 @@ def get_eligible_fraction(region_shape, excluder):
     
     # Plot the eligible area.
     if settings.make_plots:
-        figures.plot_eligible_fraction(region_shape, region_shape_with_new_crs, masked, transform, eligible_share)
+        figures.plot_eligible_fraction(region_shape_with_new_crs, masked, transform, eligible_share, resource_type, offshore)
     
     return eligible_share
 
@@ -91,13 +95,12 @@ def get_fraction_of_grid_cell_in_shape(region_shape, shapes):
     cutout = climate_utilities.create_temporary_cutout(region_shape)
     
     # Calculate the fraction of each grid cell that is in the given shapes.
-    fraction_of_grid_cells_in_shape = cutout.indicatormatrix(shapes)
+    fraction_of_grid_cells_in_shape_np = atlite.gis.compute_indicatormatrix(cutout.grid, shapes, orig_crs=cutout.crs, dest_crs=4326).toarray()
     
     # Fix NaN and Inf values to 0.0 to avoid numerical issues.
-    fraction_of_grid_cells_in_shape = np.nan_to_num(fraction_of_grid_cells_in_shape / fraction_of_grid_cells_in_shape.sum(axis=1), nan=0.0, posinf=0.0, neginf=0.0)
+    fraction_of_grid_cells_in_shape_np = np.nan_to_num((fraction_of_grid_cells_in_shape_np.T / fraction_of_grid_cells_in_shape_np.sum(axis=1)).T, nan=0.0, posinf=0.0, neginf=0.0)
 
     # Covert the indicator matrix to an xarray DataSet, with each data variable being a line of the indicator matrix.
-    fraction_of_grid_cells_in_shape_np = np.array(fraction_of_grid_cells_in_shape)
     fraction_of_grid_cells_in_shape = xr.Dataset(coords={'x': cutout.data['x'], 'y': cutout.data['y']})
     for ii in range(len(fraction_of_grid_cells_in_shape_np)):
         fraction_of_grid_cells_in_shape[str(shapes.index[ii])] = (('y', 'x'), fraction_of_grid_cells_in_shape_np[ii].reshape(len(cutout.data['y']),len(cutout.data['x'])))
@@ -111,7 +114,7 @@ def get_fraction_of_grid_cell_in_shape(region_shape, shapes):
     return fraction_of_grid_cells_in_shape
 
 
-def exctact_available_cells_with_best_resource(region_shape, availability_matrix, region_matrix, eligible_fraction, resource_type):
+def exctact_available_cells_with_best_resource(region_shape, availability_matrix, region_matrix, eligible_fraction, resource_type, offshore):
     '''
     Calculate the availability factor of all cells, the cells belonging to region, and the cells wuth best resource.
 
@@ -127,6 +130,8 @@ def exctact_available_cells_with_best_resource(region_shape, availability_matrix
         Fraction of total eligible land
     resource_type : str
         Type of resource ('wind' or 'solar')
+    offshore : bool
+        True if the resource of interest is offshore wind
 
     Returns
     -------
@@ -184,9 +189,9 @@ def exctact_available_cells_with_best_resource(region_shape, availability_matrix
     
     # Plot the cells belonging to region, the cells with availability factor, and the cells with best resource.
     if settings.make_plots:
-        figures.plot_cells(region_shape, cells_belonging_to_region, 'cells_belonging_to_region', 'Greens')
-        figures.plot_cells(region_shape, cells_with_availability_factor, 'cells_with_availability_factor', 'Greens')
-        figures.plot_cells(region_shape, cells_with_best_resource, 'cells_with_best_resource', 'Blues')
+        figures.plot_cells(region_shape, resource_type, offshore, cells_belonging_to_region, 'cells_belonging_to_region', 'Greens')
+        figures.plot_cells(region_shape, resource_type, offshore, cells_with_availability_factor, 'cells_with_availability_factor', 'Greens')
+        figures.plot_cells(region_shape, resource_type, offshore, cells_with_best_resource, 'cells_with_best_resource', 'Blues')
         
     return cells_with_availability_factor, cells_with_best_resource
 
@@ -217,14 +222,14 @@ def get_cells_of_interest(country_info, resource_type, offshore=False):
     excluder = atlite.gis.ExclusionContainer(crs=3035)
 
     # Add the exclusion areas to the exclusion container depending on the resource type.
-    excluder = exclusion.exclude_areas(country_info, excluder, resource_type, offshore)
+    excluder = exclusion.exclude_areas(country_info, region_shape, excluder, resource_type, offshore)
     
     # Create an inclusion container to identify the region under consideration.
     region_includer = atlite.gis.ExclusionContainer(crs=3035)
     region_includer.add_geometry(geometry.get_containing_geopandas_box(region_shape), invert=True)
 
     # Calculate the fraction of the total eligible land.
-    eligible_fraction = get_eligible_fraction(region_shape, excluder)
+    eligible_fraction = get_eligible_fraction(region_shape, excluder, resource_type, offshore)
 
     # Calculate the availability matrix considering the exclusion areas.
     availability_matrix = get_availability_matrix(region_shape, excluder)
@@ -233,7 +238,7 @@ def get_cells_of_interest(country_info, resource_type, offshore=False):
     region_matrix = get_availability_matrix(region_shape, region_includer)
     
     # Calculate the overall availability factor of the grid cells and the cells with best resource.
-    cells_with_availability_factor, cells_with_best_resource = exctact_available_cells_with_best_resource(region_shape, availability_matrix, region_matrix, eligible_fraction, resource_type)
+    cells_with_availability_factor, cells_with_best_resource = exctact_available_cells_with_best_resource(region_shape, availability_matrix, region_matrix, eligible_fraction, resource_type, offshore)
     
     return cells_with_availability_factor, cells_with_best_resource
 

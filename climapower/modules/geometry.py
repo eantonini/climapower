@@ -66,12 +66,12 @@ def get_geopandas_region(country_info, offshore=False):
         region_shape = region_shape.overlay(europe_bounds, how='intersection')
         
         # Add the name of the region and set is as the index.
-        region_shape['name'] = country_info['Name']+(' offshore' if offshore else '')
+        region_shape['name'] = country_info['Name']
         region_shape = region_shape.set_index('name')
         
         # Plot the shape of the region of interest.
         if settings.make_plots:
-            figures.plot_shape(region_shape)
+            figures.plot_shape(region_shape, offshore)
         
     except:
 

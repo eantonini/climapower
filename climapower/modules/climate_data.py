@@ -124,7 +124,7 @@ def get_solar_database(year, region_shape):
         [ds_rsds, ds_rsus, ds_tas, ds_tisr] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
 
         # Drop the height coordinate.
-        ds_tas = ds_tas.drop('height')
+        ds_tas = ds_tas.drop_vars('height')
 
         # Harmonize the data to hourly resolution and merge the datasets.
         ds = climate_utilities.harmonize_cordex_data([ds_rsds, ds_rsus, ds_tas], year, '3 hours')
@@ -191,7 +191,7 @@ def get_temperature_database(year, region_shape):
 
         # Rename variables and clean coordinates to match the atlite convention.    
         ds = climate_utilities.rename_and_clean_coords(ds)
-        ds = ds.rename({'t2m': 'temperature'})
+        ds = ds.to_dataset().rename({'t2m': 'temperature'})
 
     elif settings.climate_data_source == 'projections':
 
@@ -202,7 +202,7 @@ def get_temperature_database(year, region_shape):
         [ds_tas] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
         
         # Drop the height coordinate.
-        ds_tas = ds_tas.drop('height')
+        ds_tas = ds_tas.drop_vars('height')
 
         # Harmonize the data to hourly resolution.
         ds = climate_utilities.harmonize_cordex_data([ds_tas], year, '3 hours')

@@ -223,7 +223,10 @@ def calculate_hour_shift(country_info):
     '''
 
     # Get the country time zone.
-    country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
+    if country_info['Name'] == 'Kosovo':
+        country_timezone = pytz.timezone('Europe/Belgrade')
+    else:
+        country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
 
     # Get the UTC time zone.
     utc_timezone = pytz.timezone('UTC')
@@ -261,11 +264,11 @@ def get_time_series_frequency(time_series):
         if time_resolution_in_minutes == 60*24*7:
             frequency = 'W'
         elif time_resolution_in_minutes == 60:
-            frequency = 'H'
+            frequency = 'h'
         elif time_resolution_in_minutes == 30:
-            frequency = '30T'
+            frequency = '30min'
         elif time_resolution_in_minutes == 15:
-            frequency = '15T'
+            frequency = '15min'
         else:
             frequency = 'W'
             print('The time series frequency is not recognized. The frequency is set to weekly.')
