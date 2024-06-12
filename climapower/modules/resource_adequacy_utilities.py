@@ -23,9 +23,9 @@ def get_time_series_dataset(country_info, year):
 
     for variable_name in variable_names:
 
-        variable = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='historical')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
+        variable = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='reanalysis')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
 
-        dataset[variable.name] = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='historical')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
+        dataset[variable.name] = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='reanalysis')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
 
     dataset['Electricity demand'] = energy_demand_data.get_entsoe_demand(country_info, year).to_xarray().rename({'index': 'time'})
 

@@ -25,7 +25,7 @@ def get_wind_database(year, region_shape):
         Dataset (longitude x latitude x time) containing the wind speed and surface roughness for each grid cell in the focus region
     '''
     
-    if settings.climate_data_source == 'historical':
+    if settings.climate_data_source == 'reanalysis':
         
         # Define the name of the variables to load.
         variable_names = ['100m_u_component_of_wind', '100m_v_component_of_wind', 'forecast_surface_roughness']
@@ -83,7 +83,7 @@ def get_solar_database(year, region_shape):
         Dataset (longitude x latitude x time) containing the solar radiation and temperature for each grid cell in the focus region
     '''
     
-    if settings.climate_data_source == 'historical':
+    if settings.climate_data_source == 'reanalysis':
 
         # Define the name of the variables to load.
         variable_names = ['surface_net_solar_radiation', 'surface_solar_radiation_downwards', 'toa_incident_solar_radiation', 'total_sky_direct_solar_radiation_at_surface', '2m_temperature']
@@ -181,7 +181,7 @@ def get_temperature_database(year, region_shape):
         Dataset (longitude x latitude x time) containing the temperature for each grid cell in the focus region
     '''
 
-    if settings.climate_data_source == 'historical':
+    if settings.climate_data_source == 'reanalysis':
 
         # Define the name of the variables to load.
         variable_names = ['2m_temperature']
@@ -235,7 +235,7 @@ def get_hydro_database(year, region_shape):
         Dataset (longitude x latitude x time) containing the runoff for each grid cell in the focus region
     '''
 
-    if settings.climate_data_source == 'historical':
+    if settings.climate_data_source == 'reanalysis':
 
         # Define the name of the variables to load.
         variable_names = ['runoff', 'height']

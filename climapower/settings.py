@@ -25,25 +25,37 @@ if save_plots:
     if not os.path.exists(figure_folder):
         os.mkdir(figure_folder)
 
-# Define climate dataset info.
+# Define the climate dataset info.
 dataset_info = {
-    'last_historical_year' : 2022,
-    'focus_region' : 'Europe',
-    'historical_dataset' : 'ERA5',
-    'future_dataset' : 'CORDEX',
-    'representative_concentration_pathway' : 'rcp_8_5', # 'rcp_8_5' or 'rcp_4_5' or 'rcp_8_5'
-    'global_climate_model' : 'mpi_m_mpi_esm_lr', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
-    'regional_climate_model' : 'ictp_regcm4_6' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
+    'focus_region' :'Europe',
+    'reanalysis_dataset' : 'ERA5',
+    'projection_dataset' : 'CORDEX',
 }
+
+# Define the climate data source.
+climate_data_source = 'projections' # 'reanalysis' or 'projections'
+
+# Set the years over which to aggregate climate data.
+if climate_data_source == 'reanalysis':
+
+    aggregation_start_year = 1940
+    aggregation_end_year = 2023
+
+elif climate_data_source == 'projections':
+
+    aggregation_start_year = 2006
+    aggregation_end_year = 2100
+
+    # Define the CORDEX experiment and models.
+    CORDEX_experiment_and_models = {
+        'representative_concentration_pathway' : 'rcp_8_5', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
+        'global_climate_model' : 'miroc_miroc5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
+        'regional_climate_model' : 'clmcom_clm_cclm4_8_17' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
+    }
 
 # Set the chunk size for the climate data.
 chunk_size_lon_lat = {'longitude': 10, 'latitude': 10}
 chunk_size_x_y = {'x': 10, 'y': 10}
-
-# Set the years over which to aggregate climate data.
-aggregation_start_year = 2010
-aggregation_end_year = 2100
-climate_data_source = 'projections' # 'historical' or 'projections'
 
 # Set the years over which to calculate the mean climate variables used to estimate the capacity factors of wind and solar.
 start_year_for_mean_climate_variable = 2000

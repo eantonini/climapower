@@ -107,7 +107,7 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
     aggregated_runoff_per_basin = aggregated_runoff_per_basin.to_array(dim='hid')
     aggregated_runoff_per_basin['hid'] = aggregated_runoff_per_basin['hid'].values.astype('int')
     
-    if settings.climate_data_source == 'historical':
+    if settings.climate_data_source == 'reanalysis':
         # The runoff is in units of m per time step (the time resolution is one hour). It should be multiplied by the water density and the basin area to convert to kg per time step.
         aggregated_runoff_per_basin *= 1000.0*xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)
     elif settings.climate_data_source == 'projections':
