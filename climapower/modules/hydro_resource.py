@@ -8,7 +8,7 @@ import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.geospatial_utilities as geospatial_utilities
-import modules.validation_utilities as validation_utilities
+import modules.calibration_utilities as calibration_utilities
 import modules.climate_data as climate_data
 
 
@@ -162,7 +162,7 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
 
         if settings.read_hydropower_coefficients: 
             # Read the hydropower calibration coefficients.
-            retain_factors = validation_utilities.read_calibration_coefficients(country_info, 'hydropower', additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
+            retain_factors = calibration_utilities.read_calibration_coefficients(country_info, 'hydropower', additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
 
             # Map the retain factors (one for each month) to the time series of the inflow (one for each time step).
             mapped_retain_factors = pd.Series(data=retain_factors[aggregated_inflow.time.dt.month-1].values, index=aggregated_inflow.time)

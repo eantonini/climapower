@@ -48,9 +48,9 @@ elif climate_data_source == 'projections':
 
     # Define the CORDEX experiment and models.
     CORDEX_experiment_and_models = {
-        'representative_concentration_pathway' : 'rcp_8_5', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
-        'global_climate_model' : 'miroc_miroc5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
-        'regional_climate_model' : 'clmcom_clm_cclm4_8_17' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
+        'representative_concentration_pathway' : 'rcp_4_5', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
+        'global_climate_model' : 'cnrm_cerfacs_cm5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
+        'regional_climate_model' : 'cnrm_aladin63' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
     }
 
 # Set the chunk size for the climate data.
@@ -61,8 +61,8 @@ chunk_size_x_y = {'x': 10, 'y': 10}
 start_year_for_mean_climate_variable = 2000
 end_year_for_mean_climate_variable = 2020
 
-# Set the data source against which to compare the results. This is used only for the validation of wind and solar capacity factors.
-validation_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'entsoe'
+# Set the data source against which to calibrate the results. This is used only for the calibration of wind and solar capacity factors.
+calibration_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'entsoe'
 
 # Decide whether to calibrate the results. The calibration is implemented for wind capacity factors and hydropower inflow time series.
 calibration_folder = working_directory + '/calibration_results'

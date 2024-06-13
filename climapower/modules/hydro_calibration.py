@@ -6,13 +6,13 @@ import settings
 import modules.general_utilities as general_utilities
 import modules.geometry as geometry
 import modules.geospatial_utilities as geospatial_utilities
-import modules.validation_utilities as validation_utilities
+import modules.calibration_utilities as calibration_utilities
 import modules.energy_supply_data as energy_supply_data
 import modules.hydro_resource as hydro_resource
 import modules.basic_figures as figures
 
 
-def calibrate_hydropower_inflow_time_series(simulated_weekly_hydropower_inflow_time_series, actual_weekly_hydropower_inflow_time_series):
+def get_calibration_coefficients(simulated_weekly_hydropower_inflow_time_series, actual_weekly_hydropower_inflow_time_series):
     '''
     Calculate the retain factor (actual inflow / simulated inflow) for each month of the year.
 
@@ -104,9 +104,9 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     return aggregated_simulated_hydropower_inflow_time_series
 
 
-def validate_hydropower_inflow_time_series(country_info, coventional_and_pumped_storage=True):
+def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped_storage=True):
     '''
-    Validate the hydropower inflow time series obtained from climate data.
+    Calibrate the hydropower inflow time series obtained from climate data.
 
     Parameters
     ----------
@@ -141,10 +141,10 @@ def validate_hydropower_inflow_time_series(country_info, coventional_and_pumped_
         if settings.calibrate:
             
             # Calibrate the simulated hydropower inflow time series.
-            aggregated_calibrated_hydropower_inflow_time_series, retain_factors = calibrate_hydropower_inflow_time_series(aggregated_simulated_hydropower_inflow_time_series, aggregated_actual_hydropower_inflow_time_series)
+            aggregated_calibrated_hydropower_inflow_time_series, retain_factors = get_calibration_coefficients(aggregated_simulated_hydropower_inflow_time_series, aggregated_actual_hydropower_inflow_time_series)
 
             # Save the retain factor.
-            validation_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
+            calibration_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
         
         if settings.make_plots:
 

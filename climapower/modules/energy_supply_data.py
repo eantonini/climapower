@@ -570,7 +570,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
     '''
     
     # Retrieve the actual capacity factor time series based on the data source.
-    if settings.validation_data_source == 'entsoe':
+    if settings.calibration_data_source == 'entsoe':
 
         # Set the ENTSO-E generation code based on the resource type.
         if resource_type == 'wind':
@@ -613,7 +613,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
 
         actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity
 
-    elif settings.validation_data_source == 'open_power_system_database':
+    elif settings.calibration_data_source == 'open_power_system_database':
 
         actual_generation_time_series, actual_total_installed_capacity = get_opsd_generation_and_capacity(country_info, year, resource_type, offshore)
 
@@ -622,7 +622,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
 
         actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity
 
-    elif settings.validation_data_source == 'era5':
+    elif settings.calibration_data_source == 'era5':
 
         actual_capacity_factor_time_series = get_era5_resource_time_series(country_info, year, resource_type, offshore)
 

@@ -4,7 +4,7 @@ import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.geospatial_utilities as geospatial_utilities
-import modules.validation_utilities as validation_utilities
+import modules.calibration_utilities as calibration_utilities
 import modules.climate_data as climate_data
 
 
@@ -44,7 +44,7 @@ def get_solar_capacity_factor_time_series(country_info, region_shape, year, alph
 
     # Read the solar calibration coefficients.
     if settings.read_solar_coefficients: 
-        coefficients = validation_utilities.read_calibration_coefficients(country_info, 'solar')
+        coefficients = calibration_utilities.read_calibration_coefficients(country_info, 'solar')
         alpha = coefficients.loc['alpha']
         beta = coefficients.loc['beta']
 

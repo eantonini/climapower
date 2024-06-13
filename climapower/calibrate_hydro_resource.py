@@ -1,7 +1,7 @@
 import pandas as pd
 
 import modules.general_utilities as general_utilities
-import modules.hydro_validation as hydro_validation
+import modules.hydro_calibration as hydro_calibration
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
 
         if general_utilities.get_years_for_calibration(country_info, 'hydropower'):
 
-            hydro_validation.validate_hydropower_inflow_time_series(country_info)
+            hydro_calibration.calibrate_hydropower_inflow_time_series(country_info)
     
     else:
 
@@ -27,7 +27,7 @@ def main():
 
             if general_utilities.get_years_for_calibration(country_info_series, 'hydropower'):
 
-                hydro_validation.validate_hydropower_inflow_time_series(country_info_series)
+                hydro_calibration.calibrate_hydropower_inflow_time_series(country_info_series)
 
 
 if __name__ == "__main__":

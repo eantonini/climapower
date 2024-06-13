@@ -1,7 +1,7 @@
 import pandas as pd
 
 import modules.general_utilities as general_utilities
-import modules.solar_validation as solar_validation
+import modules.solar_calibration as solar_calibration
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
 
         if general_utilities.get_years_for_calibration(country_info, 'solar'):
 
-            solar_validation.validate_solar_capacity_factor_time_series(country_info)
+            solar_calibration.calibrate_solar_capacity_factor_time_series(country_info)
     
     else:
 
@@ -27,7 +27,7 @@ def main():
 
             if general_utilities.get_years_for_calibration(country_info_series, 'solar'):
 
-                solar_validation.validate_solar_capacity_factor_time_series(country_info_series)
+                solar_calibration.calibrate_solar_capacity_factor_time_series(country_info_series)
 
 
 if __name__ == "__main__":
