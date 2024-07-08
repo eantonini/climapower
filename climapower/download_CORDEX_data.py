@@ -59,13 +59,13 @@ for CORDEX_variable_name in CORDEX_variables:
 
             for year in range(start_year,end_year+1):
 
-                data_folder = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='projections', return_folder=True,
+                data_folder = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='CORDEX_projections', return_folder=True,
                                                                 representative_concentration_pathway=rcp, global_climate_model=models[model_set]['global_climate_model'], regional_climate_model=models[model_set]['regional_climate_model'])
 
                 if not os.path.exists(data_folder):
                     os.makedirs(data_folder)
 
-                data_file = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='projections',
+                data_file = directories.get_climate_data_path(year, CORDEX_variable_name, time_resolution=CORDEX_time_resolution, climate_data_source='CORDEX_projections',
                                                               representative_concentration_pathway=rcp, global_climate_model=models[model_set]['global_climate_model'], regional_climate_model=models[model_set]['regional_climate_model']).replace('.nc', '.tar.gz')
                 
                 c.retrieve(

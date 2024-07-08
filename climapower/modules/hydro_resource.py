@@ -74,7 +74,7 @@ def get_runoff_time_series(region_shape, year):
     return time_series
 
 
-def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage):
+def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage):
     '''
     Calculate the inflow time series for the given year and country.
 
@@ -88,7 +88,7 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
         Hydro basins upstream of the hydro power plants in the country of interest
     fraction_of_grid_cell_in_each_basin : xarray.DataArray
         Fraction of each grid cell that intersects with each basin (number of basins x longitude x latitude)
-    coventional_and_pumped_storage : bool
+    conventional_and_pumped_storage : bool
         True if the hydropower inflow is for the conventional and pumped storage plants
     
     Returns
@@ -110,7 +110,7 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
     if settings.climate_data_source == 'reanalysis':
         # The runoff is in units of m per time step (the time resolution is one hour). It should be multiplied by the water density and the basin area to convert to kg per time step.
         aggregated_runoff_per_basin *= 1000.0*xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
         # The runoff is in units of kg m-2 s-1 (the time resolution is one hour). It should be multiplied by the basin area and the number of seconds in one hour to convert to kg per time step.
         aggregated_runoff_per_basin *= xr.DataArray(basins_of_interests.shapes.to_crs(dict(proj="cea")).area)*60*60
 
@@ -121,7 +121,7 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
     aggregated_inflow = aggregated_inflow_per_plant.sum(dim='plant')
 
     # Assume a mean hydraulic head of all the hydropower plants in the country.
-    if coventional_and_pumped_storage:
+    if conventional_and_pumped_storage:
         mean_hydraulic_head = 50 # m - For conventional and pumped storage hydropower plants
     else:
         mean_hydraulic_head = 10 # m - For run-of-river hydropower plants
@@ -133,7 +133,7 @@ def get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_
     return aggregated_inflow
 
 
-def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_storage=True):
+def compute_aggregated_hydropower_inflow(country_info, conventional_and_pumped_storage=True):
     '''
     Compute and save the aggregated inflow for the given country and for all the years in the time period of interest.
     
@@ -141,7 +141,7 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
     ----------
     country_info : pandas.Series
         Series containing the information of the country of interest
-    coventional_and_pumped_storage : bool
+    conventional_and_pumped_storage : bool
         If True, water reservoirs and pumped storage hydro power plants are selected and aggregated together
         If False, run-of-river hydro power plants are selected
     '''
@@ -150,7 +150,7 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
     region_shape = geometry.get_geopandas_region(country_info)
 
     # Get the basins of interests.
-    basins_of_interests = get_basins_of_interests(country_info, conventional_and_pumped_storage=coventional_and_pumped_storage)
+    basins_of_interests = get_basins_of_interests(country_info, conventional_and_pumped_storage=conventional_and_pumped_storage)
 
     # Determine the fraction of each grid cell that intersects with each basin (longitude x latitude x number of basins).
     fraction_of_grid_cell_in_each_basin = geospatial_utilities.get_fraction_of_grid_cell_in_shape(region_shape, basins_of_interests.shapes)
@@ -158,11 +158,11 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
     for year in range(settings.aggregation_start_year, settings.aggregation_end_year+1):
 
         # Calculate the inflow time series for the given year and country.
-        aggregated_inflow = get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
+        aggregated_inflow = get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage)
 
         if settings.read_hydropower_coefficients: 
             # Read the hydropower calibration coefficients.
-            retain_factors = calibration_utilities.read_calibration_coefficients(country_info, 'hydropower', additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
+            retain_factors = calibration_utilities.read_calibration_coefficients(country_info, 'hydropower', conventional_and_pumped_storage=conventional_and_pumped_storage, additional_info=('__conventional_and_pumped_storage' if conventional_and_pumped_storage else '__run_of_river'))
 
             # Map the retain factors (one for each month) to the time series of the inflow (one for each time step).
             mapped_retain_factors = pd.Series(data=retain_factors[aggregated_inflow.time.dt.month-1].values, index=aggregated_inflow.time)
@@ -175,4 +175,4 @@ def compute_aggregated_hydropower_inflow(country_info, coventional_and_pumped_st
         aggregated_inflow = aggregated_inflow.assign_attrs(units='GWh', description='Energy associated to mass flow rate of water into the reservoirs')
 
         # Save the aggregated inflow.
-        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series' + ('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
+        general_utilities.save_time_series(aggregated_inflow, country_info, 'hydropower__inflow_time_series' + ('__conventional_and_pumped_storage' if conventional_and_pumped_storage else '__run_of_river'))

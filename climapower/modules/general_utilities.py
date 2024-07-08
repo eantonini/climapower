@@ -27,13 +27,16 @@ def get_countries():
                     'ISO Alpha-3',
                     'ISO Alpha-2',
                     'Offshore wind',
-                    'Hydropower',
+                    'Conventional and pumped-storage hydropower',
+                    'Run-of-river hydropower',
                     'Start year for onshore wind calibration',
                     'End year for onshore wind calibration',
                     'Start year for solar calibration',
                     'End year for solar calibration',
-                    'Start year for hydropower calibration',
-                    'End year for hydropower calibration']
+                    'Start year for conventional and pumped-storage hydropower calibration',
+                    'End year for conventional and pumped-storage hydropower calibration',
+                    'Start year for run-of-river hydropower calibration',
+                    'End year for run-of-river hydropower calibration']
 
     # Read European EU countries and their information.
     countries = pd.read_csv(settings.working_directory + '/EU27_countries.csv', index_col='Name', usecols=column_names)
@@ -77,7 +80,7 @@ def read_command_line_arguments():
     return country_info
 
 
-def get_years_for_calibration(country_info, resource_type, offshore=False):
+def get_years_for_calibration(country_info, resource_type, offshore=False, conventional_and_pumped_storage=True):
     '''
     Get the years for which the calibration of the resource of interest is needed.
 
@@ -101,9 +104,12 @@ def get_years_for_calibration(country_info, resource_type, offshore=False):
     elif resource_type == 'solar':
         start_year = country_info['Start year for solar calibration']
         end_year = country_info['End year for solar calibration']
-    elif resource_type == 'hydropower':
-        start_year = country_info['Start year for hydropower calibration']
-        end_year = country_info['End year for hydropower calibration']
+    elif resource_type == 'hydropower' and conventional_and_pumped_storage:
+        start_year = country_info['Start year for conventional and pumped-storage hydropower calibration']
+        end_year = country_info['End year for conventional and pumped-storage hydropower calibration']
+    elif resource_type == 'hydropower' and not conventional_and_pumped_storage:
+        start_year = country_info['Start year for run-of-river hydropower calibration']
+        end_year = country_info['End year for run-of-river hydropower calibration']
 
     # If the years are not available, return an empty list.
     if math.isnan(start_year) or math.isnan(end_year):
@@ -202,6 +208,9 @@ def save_time_series(time_series, country_info, variable_name):
         with xr.open_dataarray(postprocessed_data_path) as original_time_series:
             time_series = xr.concat([original_time_series,time_series],dim='time')
             time_series = time_series.sortby('time')
+
+            # Drop duplicates, if any.
+            time_series = time_series.drop_duplicates('time')
     
     # Save the time series.
     time_series.to_netcdf(postprocessed_data_path, engine='netcdf4')

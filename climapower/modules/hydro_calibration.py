@@ -47,7 +47,7 @@ def get_calibration_coefficients(simulated_weekly_hydropower_inflow_time_series,
     return calibrated_weekly_hydropower_inflow_time_series, retain_factors
 
 
-def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage=True):
+def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage=True):
     '''
     Calculate the weekly hydropower inflow time series for the given year and country.
 
@@ -61,7 +61,7 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
         Basins of interests
     fraction_of_grid_cell_in_each_basin : xarray.DataArray
         Fraction of each grid cell that intersects with each basin (number of basins x longitude x latitude)
-    coventional_and_pumped_storage : bool
+    conventional_and_pumped_storage : bool
         True if the hydropower inflow is for the conventional and pumped storage plants
         False if the hydropower inflow is for the run-of-river plants
     
@@ -72,11 +72,11 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     '''
 
     # Calculate the inflow time series for the given year and country.
-    aggregated_inflow = hydro_resource.get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
+    aggregated_inflow = hydro_resource.get_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage)
 
     # Get the inflow time series in the previous year to make sure the resampled time series is complete.
     try:
-        aggregated_inflow_previous_year = hydro_resource.get_inflow_time_series(region_shape, year-1, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
+        aggregated_inflow_previous_year = hydro_resource.get_inflow_time_series(region_shape, year-1, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage)
     except FileNotFoundError:
         # Select the last seven days of the current year and assign them to the previous year.
         aggregated_inflow_previous_year = aggregated_inflow.sel(time=slice(pd.Timestamp(str(year+1)) - pd.Timedelta(days=7), pd.Timestamp(str(year+1))))
@@ -85,7 +85,7 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     
     # Get the inflow time series in the next year to make sure the resampled time series is complete.
     try:
-        aggregated_inflow_next_year = hydro_resource.get_inflow_time_series(region_shape, year+1, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage)
+        aggregated_inflow_next_year = hydro_resource.get_inflow_time_series(region_shape, year+1, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage)
     except FileNotFoundError:
         # Select the first seven days of the current year and assign them to the next year.
         aggregated_inflow_next_year = aggregated_inflow.sel(time=slice(pd.Timestamp(str(year)), pd.Timestamp(str(year)) + pd.Timedelta(days=7)))
@@ -104,7 +104,7 @@ def get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_inter
     return aggregated_simulated_hydropower_inflow_time_series
 
 
-def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped_storage=True):
+def calibrate_hydropower_inflow_time_series(country_info, conventional_and_pumped_storage=True):
     '''
     Calibrate the hydropower inflow time series obtained from climate data.
 
@@ -112,7 +112,7 @@ def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped
     ----------
     country_info : pandas.Series
         Series containing the information of the country of interest
-    coventional_and_pumped_storage : bool
+    conventional_and_pumped_storage : bool
         True if the hydropower inflow is for the conventional and pumped storage plants
         False if the hydropower inflow is for the run-of-river plants
     '''
@@ -121,18 +121,18 @@ def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped
     region_shape = geometry.get_geopandas_region(country_info)
 
     # Get the basins of interests.
-    basins_of_interests = hydro_resource.get_basins_of_interests(country_info, conventional_and_pumped_storage=coventional_and_pumped_storage)
+    basins_of_interests = hydro_resource.get_basins_of_interests(country_info, conventional_and_pumped_storage=conventional_and_pumped_storage)
 
     # Determine the fraction of each grid cell that intersects with each basin (longitude x latitude x number of basins).
     fraction_of_grid_cell_in_each_basin = geospatial_utilities.get_fraction_of_grid_cell_in_shape(region_shape, basins_of_interests.shapes)
     
-    for year in general_utilities.get_years_for_calibration(country_info, 'hydropower'):
+    for year in general_utilities.get_years_for_calibration(country_info, 'hydropower', conventional_and_pumped_storage=conventional_and_pumped_storage):
 
         # Calculate the simulated hydropower inflow time series.
-        aggregated_simulated_hydropower_inflow_time_series = get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, coventional_and_pumped_storage=coventional_and_pumped_storage)
+        aggregated_simulated_hydropower_inflow_time_series = get_weekly_hydropower_inflow_time_series(region_shape, year, basins_of_interests, fraction_of_grid_cell_in_each_basin, conventional_and_pumped_storage=conventional_and_pumped_storage)
 
         # Calculate the hydropower inflow time series estimated with data retreived from ENTSO-E. This is in unit of GWh.
-        aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_storage=coventional_and_pumped_storage)/1e3
+        aggregated_actual_hydropower_inflow_time_series = energy_supply_data.get_entsoe_hydropower_inflow(country_info, year, conventional_and_pumped_storage=conventional_and_pumped_storage)/1e3
         
         # Select only the time steps in the year of interest.
         aggregated_simulated_hydropower_inflow_time_series = aggregated_simulated_hydropower_inflow_time_series.loc[aggregated_simulated_hydropower_inflow_time_series.index.year == year]
@@ -144,7 +144,7 @@ def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped
             aggregated_calibrated_hydropower_inflow_time_series, retain_factors = get_calibration_coefficients(aggregated_simulated_hydropower_inflow_time_series, aggregated_actual_hydropower_inflow_time_series)
 
             # Save the retain factor.
-            calibration_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info=('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'))
+            calibration_utilities.save_calibration_coefficients(country_info, year, 'hydropower', retain_factors.values, np.arange(len(retain_factors)), additional_info=('__conventional_and_pumped_storage' if conventional_and_pumped_storage else '__run_of_river'))
         
         if settings.make_plots:
 
@@ -159,4 +159,4 @@ def calibrate_hydropower_inflow_time_series(country_info, coventional_and_pumped
             compare = compare.loc[compare.index.year == year]
 
             # Plot the comparison.
-            figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow'+('__conventional_and_pumped_storage' if coventional_and_pumped_storage else '__run_of_river'), compare)
+            figures.plot_comparison_in_year(region_shape, year, 'hydropower___weekly_inflow'+('__conventional_and_pumped_storage' if conventional_and_pumped_storage else '__run_of_river'), compare)

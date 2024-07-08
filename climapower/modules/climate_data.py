@@ -41,7 +41,7 @@ def get_wind_database(year, region_shape):
         ds['wnd100m'] = np.sqrt(ds['u100'] ** 2 + ds['v100'] ** 2).assign_attrs(units=ds['u100'].attrs['units'])
         ds = ds.drop_vars(['u100', 'v100'])
 
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
 
         # Define the name of the variables to load.
         variable_names = ['10m_wind_speed', 'forecast_surface_roughness']
@@ -115,7 +115,7 @@ def get_solar_database(year, region_shape):
         # Drop variables that are not needed.
         ds = ds.drop_vars(['ssrd', 'ssr'])
 
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
 
         # Define the name of the variables to load.
         variable_names = ['surface_solar_radiation_downwards', 'surface_upwelling_shortwave_radiation', '2m_air_temperature', 'toa_incident_solar_radiation']
@@ -193,7 +193,7 @@ def get_temperature_database(year, region_shape):
         ds = climate_utilities.rename_and_clean_coords(ds)
         ds = ds.to_dataset().rename({'t2m': 'temperature'})
 
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
 
         # Define the name of the variables to load.
         variable_names = ['2m_air_temperature']
@@ -250,7 +250,7 @@ def get_hydro_database(year, region_shape):
         ds = climate_utilities.rename_and_clean_coords(ds)
         ds = ds.rename({'ro': 'runoff', 'z': 'height'})
 
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
 
         # Define the name of the variables to load.
         variable_names = ['total_run_off_flux', 'height']

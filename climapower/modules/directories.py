@@ -1,8 +1,9 @@
 import settings
 
 
-def get_climate_data_path(year, variable_name, time_resolution='hourly', climate_data_source=None, return_folder=False,
-                          representative_concentration_pathway=None, global_climate_model=None, regional_climate_model=None):
+def get_climate_data_path(year, variable_name, return_folder=False, time_resolution='hourly', climate_data_source=None, focus_region=None,
+                          representative_concentration_pathway=None, global_climate_model=None, regional_climate_model=None,
+                          shared_socioeconomic_pathway=None, climate_model=None):
     '''
     Get full data path of the climate dataset.
 
@@ -18,6 +19,16 @@ def get_climate_data_path(year, variable_name, time_resolution='hourly', climate
         Climate data source that can overwrite the default one set in settings.py
     return_folder : bool, optional
         Whether to return the folder or not
+    representative_concentration_pathway : str, optional
+        Representative concentration pathway (RCP) for CORDEX data
+    global_climate_model : str, optional
+        Global climate model for CORDEX data
+    regional_climate_model : str, optional
+        Regional climate model for CORDEX data
+    shared_socioeconomic_pathway : str, optional
+        Shared socioeconomic pathway (SSP) for CMIP6 data
+    climate_model : str, optional
+        Climate model for CMIP6 data
 
     Returns
     -------
@@ -28,54 +39,84 @@ def get_climate_data_path(year, variable_name, time_resolution='hourly', climate
     # Initialize the climate data path.
     climate_data_path = settings.climate_data_directory + '/'
 
+    # Check whether to assign a custom focus region.
+    if focus_region is None:
+        region = settings.focus_region
+    else:
+        region = focus_region
+
     # Check whether to assign a custom climate data source.
     if climate_data_source is None:
+
         climate_data_source = settings.climate_data_source
+
+        # Define the folder where the climate data are or will be stored.
+        climate_data_folder = region + '__' + settings.data_product + '__'
+
     else:
-        assert climate_data_source in ['reanalysis', 'projections'], 'The climate data source is not valid.'
-    
-    # Get the full data path.
-    if climate_data_source == 'reanalysis':
-                              
-        if settings.on_hpc:
 
-            climate_data_path += (settings.dataset_info['reanalysis_dataset'] + '__' +
-                                  settings.dataset_info['focus_region'] + '__'
-                                  + variable_name + '/')
-            
-        if return_folder:
-            return climate_data_path
-    
-    elif climate_data_source == 'projections':
-                              
-        if settings.on_hpc:
-
-            if representative_concentration_pathway is None:
-                representative_concentration_pathway = settings.CORDEX_experiment_and_models['representative_concentration_pathway']
-            else:
-                assert representative_concentration_pathway in ['rcp_2_6', 'rcp_4_5', 'rcp_8_5'], 'The RCP is not valid.'
-            
-            if global_climate_model is None:
-                global_climate_model = settings.CORDEX_experiment_and_models['global_climate_model']
-            else:
-                assert global_climate_model in ['cnrm_cerfacs_cm5', 'mpi_m_mpi_esm_lr', 'miroc_miroc5'], 'The global climate model is not valid.'
-            
-            if regional_climate_model is None:
-                regional_climate_model = settings.CORDEX_experiment_and_models['regional_climate_model']
-            else:
-                assert regional_climate_model in ['cnrm_aladin63', 'ictp_regcm4_6', 'clmcom_clm_cclm4_8_17'], 'The regional climate model is not valid.'
-
-            climate_data_path += (settings.dataset_info['projection_dataset'] + '__' +
-                                  settings.dataset_info['focus_region'] + '__' +
-                                  representative_concentration_pathway.upper() + '__' +
-                                  global_climate_model.upper() + '__' +
-                                  regional_climate_model.upper() + '__' +
-                                  variable_name + '/')
-            
-        if return_folder:
-            return climate_data_path
+        assert climate_data_source in ['reanalysis', 'CORDEX_projections', 'CMIP6_projections'], 'The climate data source is not valid.'
         
-    climate_data_path += ('{:d}__'.format(year) + time_resolution + '_' + variable_name + '.nc')
+        if climate_data_source == 'reanalysis':
+            data_product = 'ERA5'
+        elif climate_data_source == 'CORDEX_projections':
+            data_product = 'CORDEX'
+        elif climate_data_source == 'CMIP6_projections':
+            data_product = 'CMIP6'
+    
+        # Define the folder where the climate data are or will be stored.
+        climate_data_folder = region + '__' + data_product + '__'
+
+    if climate_data_source == 'CORDEX_projections':
+                              
+        # Check if the CORDEX experiment and models are set.
+        if representative_concentration_pathway is None:
+            representative_concentration_pathway = settings.CORDEX_experiment_and_models['representative_concentration_pathway']
+        else:
+            assert representative_concentration_pathway in ['rcp_2_6', 'rcp_4_5', 'rcp_8_5'], 'The RCP is not valid.'
+            
+        if global_climate_model is None:
+            global_climate_model = settings.CORDEX_experiment_and_models['global_climate_model']
+        else:
+            assert global_climate_model in ['cnrm_cerfacs_cm5', 'mpi_m_mpi_esm_lr', 'miroc_miroc5'], 'The global climate model is not valid.'
+            
+        if regional_climate_model is None:
+            regional_climate_model = settings.CORDEX_experiment_and_models['regional_climate_model']
+        else:
+            assert regional_climate_model in ['cnrm_aladin63', 'ictp_regcm4_6', 'clmcom_clm_cclm4_8_17'], 'The regional climate model is not valid.'
+
+        # Add the CORDEX experiment and models to the folder name.
+        climate_data_folder += representative_concentration_pathway.upper() + '__' + global_climate_model.upper() + '__' + regional_climate_model.upper() + '__'
+    
+    elif climate_data_source == 'CMIP6_projections':
+
+        # Check if the CMIP6 experiment and model are set.
+        if shared_socioeconomic_pathway is None:
+            shared_socioeconomic_pathway = settings.CMIP6_experiment_and_model['shared_socioeconomic_pathway']
+        else:
+            assert shared_socioeconomic_pathway in ['ssp1_2_6', 'ssp2_4_5', 'ssp5_8_5'], 'The SSP is not valid.'
+            
+        if climate_model is None:
+            climate_model = settings.CMIP6_experiment_and_model['climate_model']
+        else:
+            assert climate_model in ['mpi_esm1_2_lr', 'cmcc_esm2', 'cesm2', 'hadgem3_gc31_ll', 'bcc_csm2_mr'], 'The climate model is not valid.'
+        
+        # Add the CMIP6 experiment and model to the folder name.
+        climate_data_folder += shared_socioeconomic_pathway.upper() + '__' + climate_model.upper() + '__'
+    
+    # Add the variable name to the folder name.
+    climate_data_folder += variable_name + '/'
+
+    # On the HPC, add the new folder to the climate data path.
+    if settings.on_hpc:        
+        climate_data_path = climate_data_path + climate_data_folder
+    
+    # If only the full folder path if wanted.
+    if return_folder:
+        return climate_data_path
+
+    # Add the filename to the full folder path.
+    climate_data_path += '{:d}__'.format(year) + time_resolution + '_' + variable_name + '.nc'
     
     return climate_data_path
 
@@ -96,8 +137,8 @@ def get_mean_climate_data_path(variable_name):
     '''
     
     mean_climate_data_path = (settings.climate_data_directory + '/' +
-                              settings.dataset_info['reanalysis_dataset'] + '__' +
-                              settings.dataset_info['focus_region'] + '__' +
+                              settings.focus_region + '__' +
+                              settings.data_product + '__' +
                               '{:d}_'.format(settings.start_year_for_mean_climate_variable) +
                               '{:d}'.format(settings.end_year_for_mean_climate_variable) + '__' +
                               'mean_' + variable_name + '.nc')
@@ -126,8 +167,8 @@ def get_tisr_path_for_cordex(year):
     
     
     tisr_path_for_cordex = (settings.climate_data_directory + '/' +
-                            settings.dataset_info['reanalysis_dataset'] + '__' +
-                            settings.dataset_info['focus_region'] + '__')
+                            settings.focus_region + '__' +
+                            settings.data_product + '__')
     
     if isleap(year):
         tisr_path_for_cordex += 'toa_incident_solar_radiation_in_leap_year.nc'
@@ -159,18 +200,18 @@ def get_postprocessed_data_path(country_info, variable_name, climate_data_source
     if climate_data_source is None:
         climate_data_source = settings.climate_data_source
     
-    postprocessed_data_path = settings.result_folder + '/' + country_info['ISO Alpha-2'] + '__'
+    postprocessed_data_path = settings.result_folder + '/' + country_info['ISO Alpha-2'] + '__' + settings.data_product + '__'
     
-    if climate_data_source == 'reanalysis':
+    if climate_data_source == 'CORDEX_projections':
         
-        postprocessed_data_path += settings.dataset_info['reanalysis_dataset'] + '__'
-    
-    elif climate_data_source == 'projections':
-        
-        postprocessed_data_path += (settings.dataset_info['projection_dataset'] + '__' +
-                                    settings.CORDEX_experiment_and_models['representative_concentration_pathway'].upper() + '__' +
+        postprocessed_data_path += (settings.CORDEX_experiment_and_models['representative_concentration_pathway'].upper() + '__' +
                                     settings.CORDEX_experiment_and_models['global_climate_model'].upper() + '__' +
                                     settings.CORDEX_experiment_and_models['regional_climate_model'].upper() + '__')
+    
+    elif climate_data_source == 'CMIP6_projections':
+
+        postprocessed_data_path += (settings.CMIP6_experiment_and_model['shared_socioeconomic_pathway'].upper() + '__' +
+                                    settings.CMIP6_experiment_and_model['climate_model'].upper() + '__')
     
     postprocessed_data_path += variable_name + '.nc'
     
@@ -200,11 +241,11 @@ def get_calibration_coefficients_data_path(country_info, resource_type, addition
 
     if settings.climate_data_source == 'reanalysis':
 
-        coefficients_data_path += settings.dataset_info['reanalysis_dataset'] + '__'
+        coefficients_data_path += settings.data_product + '__'
 
-    elif settings.climate_data_source == 'projections':
+    elif settings.climate_data_source == 'CORDEX_projections':
 
-        coefficients_data_path += (settings.dataset_info['projection_dataset'] + '__RCP_2_6__' +
+        coefficients_data_path += (settings.data_product + '__RCP_2_6__' +
                                    settings.CORDEX_experiment_and_models['global_climate_model'].upper() + '__' +
                                    settings.CORDEX_experiment_and_models['regional_climate_model'].upper() + '__')
     

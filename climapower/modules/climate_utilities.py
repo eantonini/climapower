@@ -289,7 +289,7 @@ def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
     for variable_name in variable_names:
 
         if variable_name == 'height':
-            variable_dataset = xr.open_dataarray(settings.climate_data_directory+'/'+'ERA5__Europe__surface_geopotential.nc', chunks=settings.chunk_size_lon_lat)
+            variable_dataset = xr.open_dataarray(settings.climate_data_directory+'/'+'Europe__ERA5__surface_geopotential.nc', chunks=settings.chunk_size_lon_lat)
             variable_dataset = variable_dataset/9.80665
 
         elif CORDEX_data:
