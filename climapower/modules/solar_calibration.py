@@ -6,16 +6,16 @@ import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.climate_utilities as climate_utilities
-import modules.validation_utilities as validation_utilities
+import modules.calibration_utilities as calibration_utilities
 import modules.energy_supply_data as energy_supply_data
 import modules.plant_data as plant_data
 import modules.solar_resource as solar_resource
 import modules.basic_figures as figures
 
 
-def calibrate_solar_capacity_factor_time_series(country_info, region_shape, year, plant_layout, aggregated_actual_capacity_factor_time_series):
+def get_calibration_coefficients(country_info, region_shape, year, plant_layout, aggregated_actual_capacity_factor_time_series):
     '''
-    Calibrate the simulated solar capacity factor time series to match the actual capacity factor time series.
+    Calculate the calibration coefficients and calibrate the simulated solar capacity factor time series to match the actual capacity factor time series.
 
     The process is based on the following paper: https://doi.org/10.1016/j.energy.2016.08.060
 
@@ -82,9 +82,9 @@ def calibrate_solar_capacity_factor_time_series(country_info, region_shape, year
     return aggregated_calibrated_capacity_factor_time_series, alpha, beta
 
 
-def validate_solar_capacity_factor_time_series(country_info):
+def calibrate_solar_capacity_factor_time_series(country_info):
     '''
-    Validate the solar capacity factor time series obtained from climate data.
+    Calibrate the solar capacity factor time series obtained from climate data.
     
     Parameters
     ----------
@@ -116,10 +116,10 @@ def validate_solar_capacity_factor_time_series(country_info):
         if settings.calibrate:
             
             # Calibrate the simulated capacity factor time series.
-            aggregated_calibrated_capacity_factor_time_series, alpha, beta = calibrate_solar_capacity_factor_time_series(country_info, region_shape, year, plant_layout, aggregated_actual_capacity_factor_time_series)
+            aggregated_calibrated_capacity_factor_time_series, alpha, beta = get_calibration_coefficients(country_info, region_shape, year, plant_layout, aggregated_actual_capacity_factor_time_series)
                 
             # Save the calibration coefficients.
-            validation_utilities.save_calibration_coefficients(country_info, year, 'solar', [alpha, beta], ['alpha', 'beta'])
+            calibration_utilities.save_calibration_coefficients(country_info, year, 'solar', [alpha, beta], ['alpha', 'beta'])
         
         if settings.make_plots:
 

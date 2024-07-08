@@ -162,8 +162,14 @@ def get_entsoe_reservoir_filling_level(country_info, year, start=None, end=None,
     if end is None:
         end = pd.Timestamp(str(year+1), tz='UTC')
 
-    # Retrieve the hydropower generation (MW) and reservoir filling level (MWh) time series.
-    entsoe_reservoir_filling_level_time_series = client.query_aggregate_water_reservoirs_and_hydro_storage(country_info['ISO Alpha-2'], start=start, end=end)
+    # Retrieve the hydropower reservoir filling level (MWh) time series.
+    if country_info['ISO Alpha-2'] == 'PT' and (end-start).days > 364:
+        # Portugal has a weird problem where the last but one week in October has 8 days and it raises an error.
+        entsoe_reservoir_filling_level_time_series_1 = client.query_aggregate_water_reservoirs_and_hydro_storage(country_info['ISO Alpha-2'], start=pd.Timestamp(str(year), tz='UTC'), end=pd.Timestamp(str(year)+'-10-19 00:00+0000', tz='UTC'))
+        entsoe_reservoir_filling_level_time_series_2 = client.query_aggregate_water_reservoirs_and_hydro_storage(country_info['ISO Alpha-2'], start=pd.Timestamp(str(year)+'-11-01 00:00+0000', tz='UTC'), end=pd.Timestamp(str(year+1), tz='UTC'))
+        entsoe_reservoir_filling_level_time_series = pd.concat([entsoe_reservoir_filling_level_time_series_1, entsoe_reservoir_filling_level_time_series_2])
+    else:
+        entsoe_reservoir_filling_level_time_series = client.query_aggregate_water_reservoirs_and_hydro_storage(country_info['ISO Alpha-2'], start=start, end=end)
     entsoe_reservoir_filling_level_time_series = entsoe_reservoir_filling_level_time_series.tz_convert(None)
 
     # If the time series is a DataFrame, keep only the first column.
@@ -301,7 +307,7 @@ def get_extended_entsoe_hydropower_reservoir_filling_level(country_info, year, s
     return entsoe_reservoir_filling_level_time_series
 
 
-def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_storage=True):
+def get_entsoe_hydropower_inflow(country_info, year, conventional_and_pumped_storage=True):
     '''
     Retrieve the hydropower generation and reservoir filling level time series from ENTSO-E and compute the hydropower inflow time series in MWh.
 
@@ -315,7 +321,7 @@ def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_stor
         Series containing the information of the country of interest
     year : int
         Year of interest
-    coventional_and_pumped_storage : bool, optional
+    conventional_and_pumped_storage : bool, optional
         If True, water reservoirs and pumped storage hydro power plants are selected and aggregated together
         If False, run-of-river hydro power plants are selected
 
@@ -335,7 +341,7 @@ def get_entsoe_hydropower_inflow(country_info, year, coventional_and_pumped_stor
     start_following_period = pd.Timestamp(str(year+1), tz='UTC') - pd.Timedelta(days=7)
     end_following_period = pd.Timestamp(str(year+1), tz='UTC') + pd.Timedelta(days=14)
 
-    if coventional_and_pumped_storage:
+    if conventional_and_pumped_storage:
        
         # Set the ENTSO-E generation codes.
         water_reservoir_hydropower_generation_code = 'B12' # Hydro Water Reservoir
@@ -570,7 +576,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
     '''
     
     # Retrieve the actual capacity factor time series based on the data source.
-    if settings.validation_data_source == 'entsoe':
+    if settings.calibration_data_source == 'entsoe':
 
         # Set the ENTSO-E generation code based on the resource type.
         if resource_type == 'wind':
@@ -613,7 +619,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
 
         actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity
 
-    elif settings.validation_data_source == 'open_power_system_database':
+    elif settings.calibration_data_source == 'open_power_system_database':
 
         actual_generation_time_series, actual_total_installed_capacity = get_opsd_generation_and_capacity(country_info, year, resource_type, offshore)
 
@@ -622,7 +628,7 @@ def get_actual_capacity_factor(country_info, year, resource_type, offshore=False
 
         actual_capacity_factor_time_series = actual_generation_time_series/actual_total_installed_capacity
 
-    elif settings.validation_data_source == 'era5':
+    elif settings.calibration_data_source == 'era5':
 
         actual_capacity_factor_time_series = get_era5_resource_time_series(country_info, year, resource_type, offshore)
 

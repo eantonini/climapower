@@ -48,7 +48,7 @@ for CORDEX_variable_name in CORDEX_variables:
             
             # Load the ERA5 data.
             ds_era5 = xr.open_dataset(directories.get_climate_data_path(start_year, ERA5_variable_name, climate_data_source='reanalysis'), engine='netcdf4')
-            ds_cordex = xr.open_dataset(directories.get_climate_data_path(start_year, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='projections',
+            ds_cordex = xr.open_dataset(directories.get_climate_data_path(start_year, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='CORDEX_projections',
                                                                           representative_concentration_pathway=rcp, global_climate_model=models[model_set]['global_climate_model'], regional_climate_model=models[model_set]['regional_climate_model']).replace('.nc', '__original.nc'), engine='netcdf4')
 
             # Rename coordinates of ds_era5 to match xesmf requirements.
@@ -61,7 +61,7 @@ for CORDEX_variable_name in CORDEX_variables:
             for year in range(start_year,end_year+1):
                 
                 # Get the full data path of the CORDEX data.
-                data_file = directories.get_climate_data_path(year, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='projections',
+                data_file = directories.get_climate_data_path(year, CORDEX_variable_name['long'], time_resolution=CORDEX_time_resolution, climate_data_source='CORDEX_projections',
                                                               representative_concentration_pathway=rcp, global_climate_model=models[model_set]['global_climate_model'], regional_climate_model=models[model_set]['regional_climate_model'])
 
                 # Load the CORDEX data.

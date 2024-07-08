@@ -97,7 +97,7 @@ def get_weighted_averaged_coefficients(coefficients_filename, country_info, reso
     return weighted_coefficients
 
 
-def read_calibration_coefficients(country_info, resource_type, offshore=False, additional_info = ''):
+def read_calibration_coefficients(country_info, resource_type, offshore=False, conventional_and_pumped_storage=True, additional_info = ''):
     '''
     Read the calibration coefficients. If the coefficient of the country are not available, calculate them as the weighted average of the coefficients of the other countries.
 
@@ -124,7 +124,7 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False, a
     if os.path.exists(coefficients_filename):
 
         # Get the list of years of interest.
-        years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(country_info, resource_type, offshore=offshore)]
+        years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(country_info, resource_type, offshore=offshore, conventional_and_pumped_storage=conventional_and_pumped_storage)]
     
         # Calculate the weighted average of the calibration coefficients across all the years, where the weights are the installed capacity in each year.
         coefficients =  get_weighted_averaged_coefficients(coefficients_filename, country_info, resource_type, years_of_interest)
@@ -152,7 +152,7 @@ def read_calibration_coefficients(country_info, resource_type, offshore=False, a
             other_country_info = country_info_list.loc[country_info_list['ISO Alpha-2']==other_country_ISO_code].squeeze()
 
             # Get the list of years of interest.
-            years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(other_country_info, resource_type, offshore=offshore)]
+            years_of_interest = [str(year) for year in general_utilities.get_years_for_calibration(other_country_info, resource_type, offshore=offshore, conventional_and_pumped_storage=conventional_and_pumped_storage)]
 
             # Calculate the weighted average of the calibration coefficients across all the years, where the weights are the installed capacity in each year.
             coefficients[other_country_info['Name']] =  get_weighted_averaged_coefficients(other_coefficients_filename, other_country_info, resource_type, years_of_interest)

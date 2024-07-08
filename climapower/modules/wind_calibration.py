@@ -6,16 +6,16 @@ import settings
 import modules.geometry as geometry
 import modules.general_utilities as general_utilities
 import modules.climate_utilities as climate_utilities
-import modules.validation_utilities as validation_utilities
+import modules.calibration_utilities as calibration_utilities
 import modules.energy_supply_data as energy_supply_data
 import modules.plant_data as plant_data
 import modules.wind_resource as wind_resource
 import modules.basic_figures as figures
 
 
-def calibrate_wind_capacity_factor_time_series(country_info, region_shape, year, offshore, plant_layout, aggregated_simulated_capacity_factor_time_series, aggregated_actual_capacity_factor_time_series):
+def get_calibration_coefficients(country_info, region_shape, year, offshore, plant_layout, aggregated_simulated_capacity_factor_time_series, aggregated_actual_capacity_factor_time_series):
     '''
-    Calibrate the simulated wind capacity factor time series to match the actual capacity factor time series.
+    Calculate the calibration coefficients and calibrate the simulated wind capacity factor time series to match the actual capacity factor time series.
 
     The process is based on the following paper: https://doi.org/10.1016/j.energy.2016.08.068
 
@@ -85,7 +85,7 @@ def calibrate_wind_capacity_factor_time_series(country_info, region_shape, year,
     return aggregated_calibrated_capacity_factor_time_series, alpha, beta
 
 
-def validate_wind_capacity_factor_time_series(country_info, offshore):
+def calibrate_wind_capacity_factor_time_series(country_info, offshore):
     '''
     Validate and calibrate the wind capacity factor time series obtained from climate data.
 
@@ -121,10 +121,10 @@ def validate_wind_capacity_factor_time_series(country_info, offshore):
         if settings.calibrate:
             
             # Calibrate the simulated capacity factor time series.
-            aggregated_calibrated_capacity_factor_time_series, alpha, beta = calibrate_wind_capacity_factor_time_series(country_info, region_shape, year, offshore, plant_layout, aggregated_simulated_capacity_factor_time_series, aggregated_actual_capacity_factor_time_series)
+            aggregated_calibrated_capacity_factor_time_series, alpha, beta = get_calibration_coefficients(country_info, region_shape, year, offshore, plant_layout, aggregated_simulated_capacity_factor_time_series, aggregated_actual_capacity_factor_time_series)
 
             # Save the calibration coefficients.
-            validation_utilities.save_calibration_coefficients(country_info, year, 'wind', [alpha, beta], ['alpha', 'beta'], additional_info=('__offshore' if offshore else '__onshore'))
+            calibration_utilities.save_calibration_coefficients(country_info, year, 'wind', [alpha, beta], ['alpha', 'beta'], additional_info=('__offshore' if offshore else '__onshore'))
             
         if settings.make_plots:
 

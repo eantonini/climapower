@@ -25,32 +25,42 @@ if save_plots:
     if not os.path.exists(figure_folder):
         os.mkdir(figure_folder)
 
-# Define the climate dataset info.
-dataset_info = {
-    'focus_region' :'Europe',
-    'reanalysis_dataset' : 'ERA5',
-    'projection_dataset' : 'CORDEX',
-}
-
 # Define the climate data source.
-climate_data_source = 'projections' # 'reanalysis' or 'projections'
+climate_data_source = 'CORDEX_projections' # 'reanalysis' or 'CORDEX_projections' or 'CMIP6_projections
 
 # Set the years over which to aggregate climate data.
 if climate_data_source == 'reanalysis':
 
+    focus_region = 'Europe' # 'Europe' or 'World'
+    data_product = 'ERA5'
     aggregation_start_year = 1940
     aggregation_end_year = 2023
 
-elif climate_data_source == 'projections':
+elif climate_data_source == 'CORDEX_projections':
 
+    focus_region = 'Europe'
+    data_product = 'CORDEX'
     aggregation_start_year = 2006
     aggregation_end_year = 2100
 
     # Define the CORDEX experiment and models.
     CORDEX_experiment_and_models = {
-        'representative_concentration_pathway' : 'rcp_8_5', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
+        'representative_concentration_pathway' : 'rcp_2_6', # 'rcp_2_6' or 'rcp_4_5' or 'rcp_8_5'
         'global_climate_model' : 'miroc_miroc5', # 'cnrm_cerfacs_cm5' or 'mpi_m_mpi_esm_lr' or 'miroc_miroc5'
         'regional_climate_model' : 'clmcom_clm_cclm4_8_17' # 'cnrm_aladin63' or 'ictp_regcm4_6' or 'clmcom_clm_cclm4_8_17'
+    }
+
+elif climate_data_source == 'CMIP6_projections':
+
+    data_product = 'World'
+    data_product = 'CMIP6'
+    aggregation_start_year = 2015
+    aggregation_end_year = 2100
+
+    # Define the CMIP6 experiment and models.
+    CMIP6_experiment_and_model = {
+        'shared_socioeconomic_pathway' : 'ssp1_2_6', # 'ssp1_2_6' or 'ssp2_4_5' or 'ssp5_8_5'
+        'climate_model' : 'mpi_esm1_2_lr' # 'mpi_esm1_2_lr' or 'cmcc_esm2' or 'cesm2' or 'hadgem3_gc31_mm' or 'bcc_csm2_mr'
     }
 
 # Set the chunk size for the climate data.
@@ -61,8 +71,8 @@ chunk_size_x_y = {'x': 10, 'y': 10}
 start_year_for_mean_climate_variable = 2000
 end_year_for_mean_climate_variable = 2020
 
-# Set the data source against which to compare the results. This is used only for the validation of wind and solar capacity factors.
-validation_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'entsoe'
+# Set the data source against which to calibrate the results. This is used only for the calibration of wind and solar capacity factors.
+calibration_data_source = 'entsoe' # 'open_power_system_database' or 'era5' or 'entsoe'
 
 # Decide whether to calibrate the results. The calibration is implemented for wind capacity factors and hydropower inflow time series.
 calibration_folder = working_directory + '/calibration_results'

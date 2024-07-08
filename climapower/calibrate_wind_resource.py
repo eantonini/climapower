@@ -1,7 +1,7 @@
 import pandas as pd
 
 import modules.general_utilities as general_utilities
-import modules.wind_validation as wind_validation
+import modules.wind_calibration as wind_calibration
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
 
         if general_utilities.get_years_for_calibration(country_info, 'wind'):
 
-            wind_validation.validate_wind_capacity_factor_time_series(country_info, offshore=False)
+            wind_calibration.calibrate_wind_capacity_factor_time_series(country_info, offshore=False)
         
     else:
 
@@ -27,7 +27,7 @@ def main():
 
             if general_utilities.get_years_for_calibration(country_info_series, 'wind'):
 
-                wind_validation.validate_wind_capacity_factor_time_series(country_info_series, offshore=False)
+                wind_calibration.calibrate_wind_capacity_factor_time_series(country_info_series, offshore=False)
 
 
 if __name__ == "__main__":

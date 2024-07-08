@@ -235,7 +235,7 @@ def plot_comparison_in_year(region_shape, year, variable_name, compare):
 
     # Plot the actual time series and its mean.
     ax.plot([compare.index.min(), compare.index.max()], [compare['actual'].mean(), compare['actual'].mean()], color=colors['actual'], linestyle='dashed')
-    legend_names = ax.plot(compare.resample('1W').mean().index, compare['actual'].resample('1W').mean(), color=colors['actual'], label=settings.validation_data_source)
+    legend_names = ax.plot(compare.resample('1W').mean().index, compare['actual'].resample('1W').mean(), color=colors['actual'], label=settings.calibration_data_source)
     
     # Plot the calibrated time series and its mean.
     if settings.calibrate:
@@ -303,7 +303,7 @@ def plot_comparison_in_period(region_shape, year, variable_name, compare):
     plt.rc('font', size=16)
 
     # Rename the variables before plotting.
-    compare = compare.rename(columns={'actual': settings.validation_data_source})
+    compare = compare.rename(columns={'actual': settings.calibration_data_source})
 
     # Plot the capacity factor time series in three different months.
     compare[str(year)+'-01-01T00:00:00':str(year)+'-01-31T23:00:00'].plot(ax=ax[0], color=colors, x_compat=True)
