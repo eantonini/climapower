@@ -1,28 +1,28 @@
-,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for hydropower calibration,End year for hydropower calibration
-0,Austria,AUT,AT,FALSE,TRUE,,,,,2015,2022
-1,Belgium,BEL,BE,TRUE,FALSE,,,,,,
-2,Bulgaria,BGR,BG,TRUE,TRUE,,,,,2015,2022
-3,Croatia,HRV,HR,TRUE,TRUE,,,,,2019,2022
-4,Cyprus,CYP,CY,TRUE,FALSE,,,,,,
-5,Czech Republic,CZE,CZ,FALSE,FALSE,,,,,,
-6,Denmark,DNK,DK,TRUE,FALSE,2015,2019,,,,
-7,Estonia,EST,EE,TRUE,FALSE,,,,,,
-8,Finland,FIN,FI,TRUE,FALSE,,,,,,
-9,France,FRA,FR,TRUE,TRUE,2015,2019,2015,2019,2015,2022
-10,Germany,DEU,DE,TRUE,FALSE,2015,2019,2015,2019,,
-11,Greece,GRC,GR,TRUE,TRUE,,,,,2018,2022
-12,Hungary,HUN,HU,FALSE,FALSE,,,,,,
-13,Ireland,IRL,IE,TRUE,FALSE,,,,,,
-14,Italy,ITA,IT,TRUE,TRUE,,,,,2015,2022
-15,Latvia,LVA,LV,TRUE,FALSE,,,,,,
-16,Lithuania,LTU,LT,TRUE,FALSE,,,,,,
-17,Luxembourg,LUX,LU,FALSE,FALSE,,,,,,
-18,Malta,MLT,MT,TRUE,FALSE,,,,,,
-19,Netherlands,NLD,NL,TRUE,FALSE,,,,,,
-20,Poland,POL,PL,TRUE,FALSE,,,,,,
-21,Portugal,PRT,PT,TRUE,TRUE,,,,,2015,2022
-22,Romania,ROU,RO,TRUE,TRUE,,,,,2015,2022
-23,Slovakia,SVK,SK,FALSE,FALSE,,,,,,
-24,Slovenia,SVN,SI,TRUE,FALSE,,,,,,
-25,Spain,ESP,ES,TRUE,TRUE,,,,,2015,2022
-26,Sweden,SWE,SE,TRUE,TRUE,2015,2019,,,2015,2022
+,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Conventional and pumped-storage hydropower,Run-of-river hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for conventional and pumped-storage hydropower calibration,End year for conventional and pumped-storage hydropower calibration,Start year for run-of-river hydropower calibration,End year for run-of-river hydropower calibration
+0,Austria,AUT,AT,FALSE,TRUE,TRUE,,,,,2015,2022,2015,2022
+1,Belgium,BEL,BE,TRUE,FALSE,FALSE,,,,,,,,
+2,Bulgaria,BGR,BG,TRUE,TRUE,FALSE,,,,,2015,2022,,
+3,Croatia,HRV,HR,TRUE,TRUE,TRUE,,,,,2019,2022,2019,2022
+4,Cyprus,CYP,CY,TRUE,FALSE,FALSE,,,,,,,,
+5,Czech Republic,CZE,CZ,FALSE,FALSE,FALSE,,,,,,,,
+6,Denmark,DNK,DK,TRUE,FALSE,FALSE,2015,2019,,,,,,
+7,Estonia,EST,EE,TRUE,FALSE,FALSE,,,,,,,,
+8,Finland,FIN,FI,TRUE,FALSE,TRUE,,,,,,,2015,2022
+9,France,FRA,FR,TRUE,TRUE,TRUE,2015,2019,2015,2019,2015,2022,2015,2022
+10,Germany,DEU,DE,TRUE,FALSE,FALSE,2015,2019,2015,2019,,,,
+11,Greece,GRC,GR,TRUE,TRUE,FALSE,,,,,2018,2022,,
+12,Hungary,HUN,HU,FALSE,FALSE,FALSE,,,,,,,,
+13,Ireland,IRL,IE,TRUE,FALSE,FALSE,,,,,,,,
+14,Italy,ITA,IT,TRUE,TRUE,TRUE,,,,,2015,2022,2015,2022
+15,Latvia,LVA,LV,TRUE,FALSE,FALSE,,,,,,,,
+16,Lithuania,LTU,LT,TRUE,FALSE,FALSE,,,,,,,,
+17,Luxembourg,LUX,LU,FALSE,FALSE,FALSE,,,,,,,,
+18,Malta,MLT,MT,TRUE,FALSE,FALSE,,,,,,,,
+19,Netherlands,NLD,NL,TRUE,FALSE,FALSE,,,,,,,,
+20,Poland,POL,PL,TRUE,FALSE,FALSE,,,,,,,,
+21,Portugal,PRT,PT,TRUE,TRUE,TRUE,,,,,2015,2022,2015,2022
+22,Romania,ROU,RO,TRUE,TRUE,TRUE,,,,,2015,2022,2015,2022
+23,Slovakia,SVK,SK,FALSE,FALSE,TRUE,,,,,,,2015,2022
+24,Slovenia,SVN,SI,TRUE,FALSE,TRUE,,,,,,,2015,2022
+25,Spain,ESP,ES,TRUE,TRUE,FALSE,,,,,2015,2022,,
+26,Sweden,SWE,SE,TRUE,TRUE,FALSE,2015,2019,,,2015,2022,,

@@ -4,28 +4,37 @@ import pandas as pd
 from scipy.interpolate import CubicSpline
 from itertools import accumulate
 
+import settings
 import modules.directories as directories
 import modules.energy_demand_data as energy_demand_data
 import modules.energy_supply_data as energy_supply_data
 
 
-def get_time_series_dataset(country_info, year):
+def get_time_series_dataset(country_info, year, climate_data_source='reanalysis'):
 
     variable_names = ['wind__capacity_factor_time_series__onshore',
                       'wind__capacity_factor_time_series__offshore',
                       'solar__capacity_factor_time_series',
                       'hydropower__inflow_time_series__conventional_and_pumped_storage',
-                      'heating__demand_time_series__residential_space',
-                      'heating__demand_time_series__services_space',
-                      'cooling__demand_time_series']
+                      #'heating__demand_time_series__residential_space',
+                      #'heating__demand_time_series__services_space',
+                      #'cooling__demand_time_series',
+                      ]
     
     dataset = {}
 
     for variable_name in variable_names:
 
-        variable = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='reanalysis')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
+        variable = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source=climate_data_source)).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
 
-        dataset[variable.name] = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source='reanalysis')).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
+        dataset[variable.name] = xr.open_dataarray(directories.get_postprocessed_data_path(country_info, variable_name, climate_data_source=climate_data_source)).loc[pd.date_range(str(year), str(year+1), freq='h')[:-1]]
+
+    return dataset
+
+
+def get_entsoe_time_series_dataset(country_info, year):
+
+    dataset = {}
 
     dataset['Electricity demand'] = energy_demand_data.get_entsoe_demand(country_info, year).to_xarray().rename({'index': 'time'})
 
@@ -41,15 +50,13 @@ def get_time_series_dataset(country_info, year):
     dataset['Run-of-river hydropower generation'] = energy_supply_data.get_entsoe_generation(country_info, year, 'B11', remove_outliers=False).to_xarray().rename({'index': 'time'})
     dataset['Run-of-river hydropower generation capacity'] = energy_supply_data.get_entsoe_capacity(country_info, year, 'B11')
     
-    # Convert the hydropower inflow time series to unit of MWh.
-    mean_hydraulic_head = 50 # m
-    j_to_mwh = 1/3.6e9
-    dataset['Hydropower inflow'] = dataset['Hydropower inflow']*9.81*mean_hydraulic_head*j_to_mwh
-    dataset['Hydropower inflow'] = dataset['Hydropower inflow'] / dataset['Hydropower inflow'].mean() * (dataset['Conventional hydropower generation'].mean() + dataset['Pumped-storage hydropower generation'].mean() - dataset['Pumped-storage hydropower consumption'].mean())
-    
     dataset['Original reservoir filling level'] = energy_supply_data.get_entsoe_reservoir_filling_level(country_info, year)
 
-    """ 
+    return dataset
+
+
+def get_plants(country_info):
+
     plants = pd.read_csv(settings.energy_data_directory+'/jrc-hydro-power-plant-database.csv')
 
     plants = plants.loc[plants['country_code'] == country_info['ISO Alpha-2']]
@@ -66,10 +73,7 @@ def get_time_series_dataset(country_info, year):
 
     conventional_storage = conventional_plants['storage_capacity_MWh'].sum()
     pumped_storage_storage = pumped_storage_plants['storage_capacity_MWh'].sum()
-    run_of_river_storage = run_of_river_plants['storage_capacity_MWh'].sum()
-    """
-
-    return dataset
+    run_of_river_storage = run_of_river_plants['storage_capacity_MWh'].sum()   
 
 
 def get_mix_for_highest_resource_adequacy(mix_values, resource_adequacy):
@@ -231,7 +235,7 @@ def get_hydropower_generation(residual_demand_for_hydropower, dataset, fraction_
     # Covert the residual demand to a pandas series.
     residual_demand_for_hydropower = residual_demand_for_hydropower.to_pandas()
 
-    # Shif the values of hydropower inflow by one to reflect the fact that the previus timestep is considered in the enrgy balance.
+    # Shif the values of hydropower inflow by one to reflect the fact that the previus timestep is considered in the energy balance.
     hydropower_inflow = dataset['Hydropower inflow'].to_pandas().shift(1, fill_value=0)
     
     # Get the total generation and consumption capacity of the hydropower plants.
@@ -275,7 +279,7 @@ def get_hydropower_generation(residual_demand_for_hydropower, dataset, fraction_
     return hydropower_generation, hydropower_upstream_reservoir_filling_level, hydropower_downstream_reservoir_filling_level
 
 
-def get_residual_demand(dataset, wind_and_solar_generation_fraction, wind_generation_fraction, use_actual_hydropower_generation=True, fraction_of_pumped_storage=0, hours_at_full_power_consumption_capacity=8):
+def get_residual_demand(dataset, wind_and_solar_generation_fraction=0., wind_generation_fraction=0., wind_capacity=None, solar_capacity=None, use_actual_hydropower_generation=True, fraction_of_pumped_storage=0., hours_at_full_power_consumption_capacity=8):
     '''
     Calculate the residual demand considering wind, solar, and hydropower generation.
 
@@ -312,30 +316,54 @@ def get_residual_demand(dataset, wind_and_solar_generation_fraction, wind_genera
     # Calculate the mean demand and the mean wind and solar generation.
     mean_electricity_demand = float(dataset['Electricity demand'].mean().values)
 
-    # Get the actual hydropower generation.
-    actual_hydropower_generation = dataset['Conventional hydropower generation'] + dataset['Pumped-storage hydropower generation'] + dataset['Run-of-river hydropower generation'] - dataset['Pumped-storage hydropower consumption']
+    # Get the hydropower generation.
+    if use_actual_hydropower_generation:
+        hydropower_generation = dataset['Conventional hydropower generation'] + dataset['Pumped-storage hydropower generation'] + dataset['Run-of-river hydropower generation'] - dataset['Pumped-storage hydropower consumption']
+        mean_hydropower_generation = float(hydropower_generation.mean().values)
+    else:
+        mean_hydropower_generation = float(dataset['Hydropower inflow'].mean().values) + float(dataset['Run-of-river hydropower generation'].mean().values)
 
-    # Calculate the mean wind and solar generation by subtracting the mean actual hydropower generation from the mean electricity demand.
-    mean_wind_generation = wind_and_solar_generation_fraction * wind_generation_fraction * (mean_electricity_demand - actual_hydropower_generation.mean())
-    mean_solar_generation = wind_and_solar_generation_fraction * (1 - wind_generation_fraction) * (mean_electricity_demand - actual_hydropower_generation.mean())
+    # Calculate the wind generation.
+    if wind_capacity is None:
+        # Calculate the mean wind generation by subtracting the mean hydropower generation from the mean electricity demand and multiplying the result by the wind and solar generation fraction and the wind generation fraction.
+        mean_wind_generation = wind_and_solar_generation_fraction * wind_generation_fraction * (mean_electricity_demand - mean_hydropower_generation)
+
+        # Calculate the wind generation by multiplying the mean wind generation by the normalized wind capacity factor.
+        wind_generation = mean_wind_generation * dataset['Onshore wind capacity factor'] / dataset['Onshore wind capacity factor'].mean()
+    else:
+        # Calculate the wind generation by multiplying the wind capacity by the wind capacity factor.
+        wind_generation = wind_capacity * dataset['Onshore wind capacity factor']
+
+        # Calculate the mean wind generation.
+        mean_wind_generation = float(wind_generation.mean().values)
     
-    # Calculate the wind and solar generation.
-    wind_generation = mean_wind_generation * dataset['Onshore wind capacity factor'] / dataset['Onshore wind capacity factor'].mean()
-    solar_generation = mean_solar_generation * dataset['Solar capacity factor'] / dataset['Solar capacity factor'].mean()
+    # Calculate the solar generation.
+    if solar_capacity is None:
+        # Calculate the mean solar generation by subtracting the mean hydropower generation from the mean electricity demand and multiplying the result by the wind and solar generation fraction and the fraction of the electricity demand that is met by the wind generation.
+        mean_solar_generation = wind_and_solar_generation_fraction * (1 - wind_generation_fraction) * (mean_electricity_demand - mean_hydropower_generation)
 
+        # Calculate the solar generation by multiplying the mean solar generation by the normalized solar capacity factor.
+        solar_generation = mean_solar_generation * dataset['Solar capacity factor'] / dataset['Solar capacity factor'].mean()   
+    else:
+        # Calculate the solar generation by multiplying the solar capacity by the solar capacity factor.
+        solar_generation = solar_capacity * dataset['Solar capacity factor']
+
+        # Calculate the mean solar generation.
+        mean_solar_generation = float(solar_generation.mean().values)
+    
     # Calculate the residual demand considering wind and solar.
-    residual_demand = dataset['Electricity demand'] - wind_generation - solar_generation
+    residual_demand = dataset['Electricity demand'].values - wind_generation - solar_generation
 
     if use_actual_hydropower_generation:
-        # Use the actual hydropower generation.
-        hydropower_generation = actual_hydropower_generation
+        # Use the actual hydropower generation. Make sure that the time series of the hydropower generation has the same time stamps as the residual demand.
+        hydropower_generation['time'] = residual_demand['time']
     
     else:
         # Calculate the hydropower generation of the conventional and pumped storage plants.
         hydropower_generation, __, __ = get_hydropower_generation(residual_demand, dataset, fraction_of_pumped_storage=fraction_of_pumped_storage, hours_at_full_power_consumption_capacity=hours_at_full_power_consumption_capacity)
 
         # Add the run-of-river hydropower generation.
-        hydropower_generation = hydropower_generation + dataset['Run-of-river hydropower generation']
+        hydropower_generation = hydropower_generation + dataset['Run-of-river hydropower generation'].values
     
     # Convert the hydropower generation to a xarray.DataArray.
     if isinstance(hydropower_generation, pd.Series):
@@ -347,7 +375,7 @@ def get_residual_demand(dataset, wind_and_solar_generation_fraction, wind_genera
     return residual_demand, mean_wind_generation, mean_solar_generation, hydropower_generation
 
 
-def get_resource_adequacy(dataset, wind_and_solar_generation_fractions, wind_generation_fractions, use_actual_hydropower_generation=True, fraction_of_pumped_storage=0, hours_at_full_power_consumption_capacity=8):
+def get_resource_adequacy(dataset, wind_and_solar_generation_fractions, wind_generation_fractions, use_actual_hydropower_generation=True, fraction_of_pumped_storage=0., hours_at_full_power_consumption_capacity=8):
     '''
     Calculate the resource adequacy of the power supply given by the wind, solar, and hydropower generation in meeting the electricity demand.
 
@@ -386,7 +414,7 @@ def get_resource_adequacy(dataset, wind_and_solar_generation_fractions, wind_gen
         for jj, wind_generation_fraction in enumerate(wind_generation_fractions):
 
             # Calculate the residual demand.
-            residual_demand, __, __, __ = get_residual_demand(dataset, wind_and_solar_generation_fraction, wind_generation_fraction, use_actual_hydropower_generation=use_actual_hydropower_generation, fraction_of_pumped_storage=fraction_of_pumped_storage, hours_at_full_power_consumption_capacity=hours_at_full_power_consumption_capacity)
+            residual_demand, __, __, __ = get_residual_demand(dataset, wind_and_solar_generation_fraction=wind_and_solar_generation_fraction, wind_generation_fraction=wind_generation_fraction, use_actual_hydropower_generation=use_actual_hydropower_generation, fraction_of_pumped_storage=fraction_of_pumped_storage, hours_at_full_power_consumption_capacity=hours_at_full_power_consumption_capacity)
 
             # Calculate the unmet demand.
             unmet_demand[ii, jj] = residual_demand.where(residual_demand > 0, 0).sum()

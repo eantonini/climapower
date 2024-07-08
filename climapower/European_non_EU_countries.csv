@@ -1,10 +1,10 @@
-,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for hydropower calibration,End year for hydropower calibration
-0,Albania,ALB,AL,TRUE,FALSE,,,,,,
-1,Bosnia and Herzegovina,BIH,BA,FALSE,FALSE,,,,,,
-2,Kosovo,XKX,XK,FALSE,FALSE,,,,,,
-3,Montenegro,MNE,ME,TRUE,FALSE,,,,,,
-4,North Macedonia,MKD,MK,FALSE,FALSE,,,,,,
-5,Norway,NOR,NO,TRUE,TRUE,,,,,2015,2022
-6,Serbia,SRB,RS,FALSE,TRUE,,,,,2017,2022
-7,Switzerland,CHE,CH,FALSE,TRUE,,,,,2015,2022
-8,United Kingdom,GBR,GB,TRUE,FALSE,2015,2019,2015,2019,,
+,Name,ISO Alpha-3,ISO Alpha-2,Offshore wind,Conventional and pumped-storage hydropower,Run-of-river hydropower,Start year for onshore wind calibration,End year for onshore wind calibration,Start year for solar calibration,End year for solar calibration,Start year for conventional and pumped-storage hydropower calibration,End year for conventional and pumped-storage hydropower calibration,Start year for run-of-river hydropower calibration,End year for run-of-river hydropower calibration
+0,Albania,ALB,AL,TRUE,FALSE,FALSE,,,,,,,,
+1,Bosnia and Herzegovina,BIH,BA,FALSE,FALSE,FALSE,,,,,,,,
+2,Kosovo,XKX,XK,FALSE,FALSE,FALSE,,,,,,,,
+3,Montenegro,MNE,ME,TRUE,FALSE,FALSE,,,,,,,,
+4,North Macedonia,MKD,MK,FALSE,FALSE,FALSE,,,,,,,,
+5,Norway,NOR,NO,TRUE,TRUE,FALSE,,,,,2015,2022,,
+6,Serbia,SRB,RS,FALSE,TRUE,TRUE,,,,,2017,2022,2017,2022
+7,Switzerland,CHE,CH,FALSE,TRUE,FALSE,,,,,2015,2022,,
+8,United Kingdom,GBR,GB,TRUE,FALSE,FALSE,2015,2019,2015,2019,,,,
