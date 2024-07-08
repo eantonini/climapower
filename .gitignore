@@ -1,5 +1,6 @@
 .vscode
 *.code-workspace
+*.png
 climapower/modules/__pycache__
 climapower/__pycache__
 climapower/postprocessed_results
