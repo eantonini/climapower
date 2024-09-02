@@ -15,6 +15,6 @@ climapower/fix_1940.py
 climapower/check_energy*
 potentials
 extract_data_for_Italy.py
-get_resource_adequacy.py
-modules/resource_adequacy.py
-modules/resource_adequacy_utilities.py
+climapower/get_resource_adequacy.py
+climapower/modules/resource_adequacy.py
+climapower/modules/resource_adequacy_utilities.py
