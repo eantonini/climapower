@@ -4,7 +4,7 @@ This repository contains scripts to generate weather- and climate-driven power s
 
 The methodology is described in the following paper:
 
-> **Title**: "Climapower: A Python package for generating weather- and climate-driven power supply and demand time series for power and energy system analyses
+"Weather- and climate-driven power supply and demand time series for power and energy system analyses", under review.
 
 ## Installation
 
