@@ -38,7 +38,7 @@ def get_geopandas_region(country_info, offshore=False):
         region_shapes = shpreader.natural_earth(resolution='50m', category='cultural', name='admin_0_countries')
 
         # Define specific search attributes.
-        dataset_attribute = 'ISO_A3_EH'
+        dataset_attribute = 'ISO_A3'
         backup_dataset_attribute = 'NAME'
     
     # Define a reader for the shapefile.
@@ -111,12 +111,17 @@ def get_containing_geopandas_box(region_shape):
     return containing_box
 
 
-def get_grid_cell_area():
+def get_grid_cell_area(resolution=0.25):
     '''
     Calculate the area of each cell defined by the lat/lon grid.
     
     https://www.pmel.noaa.gov/maillists/tmap/ferret_users/fu_2004/msg00023.html
     https://en.wikipedia.org/wiki/Spherical_sector
+
+    Parameters
+    ----------
+    resolution : float
+        Resolution of the grid in degrees
 
     Returns
     -------
@@ -125,8 +130,8 @@ def get_grid_cell_area():
     '''
     
     # Define the latitide and longitude values of the grid cell midpoints.
-    lon = np.linspace(-180, 180, int(360/0.25)+1)
-    lat = np.linspace(-90, 90, int(180/0.25)+1)
+    lon = np.linspace(0, 360, int(360/resolution)+1)
+    lat = np.linspace(-90, 90, int(180/resolution)+1)
 
     # Define the latitude values of the grid cell boundaries.
     bounds_lat = np.insert(0.5*(lat[1:]+lat[:-1]), 0, lat[0])
@@ -135,13 +140,10 @@ def get_grid_cell_area():
                                        'lower_lat': (['y', 'x'], np.tile(bounds_lat[:-1], (len(lon), 1)).T)},
                             coords={'x': lon, 'y': lat})
 
-    # Define the grid resolution.
-    delta_lon = 0.25
-
     # Define the Earth's radius.
     R_earth = 6.371*10**6
 
     # Calculate the area of each cell.
-    cell_areas = 2*np.pi*R_earth**2*np.absolute(np.sin(bounds_lat['upper_lat']*np.pi/180)-np.sin(bounds_lat['lower_lat']*np.pi/180))*np.absolute(delta_lon)/360
+    cell_areas = 2*np.pi*R_earth**2*np.absolute(np.sin(bounds_lat['upper_lat']*np.pi/180)-np.sin(bounds_lat['lower_lat']*np.pi/180))*np.absolute(resolution)/360
     
     return cell_areas

@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import xarray as xr
 import pytz
@@ -41,7 +42,130 @@ def get_heating_demand_time_series(region_shape, year, threshold, hour_shift=0.0
     return time_series
 
 
-def get_hourly_heating_intraday_profile(country_info, year):
+def get_intraday_heating_profile(country_info, year, sector, use, method='hourly_dependent', weights=None):
+    '''
+    Get the intraday profile of the heating demand for the given country.
+
+    Parameters
+    ----------
+    country_info : pandas.Series
+        Series containing the information of the country of interest
+    year : int
+        Year of interest
+    sector : str
+        Sector of the heating demand
+    use : str
+        Use of the heating demand
+    method : str
+        Method to calculate the intraday profile of the heating demand
+    weights : xarray.DataArray
+        Weights to aggregate the temperature time series
+    
+    Returns
+    -------
+    hourly_intraday_profile : pandas.Series
+        Hourly intraday profile of the heating demand for the given country
+    '''
+
+    # Get the country time zone.
+    if country_info['Name'] == 'Kosovo':
+        country_timezone = pytz.timezone('Europe/Belgrade')
+    else:
+        country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
+
+    # Create a pandas DatetimeIndex with the hours of the year.
+    time_index_of_year = pd.date_range(str(year), str(year+1), freq='h')[:-1]
+
+    # Extract the time periods, assign them the UTC time zone, and convert them to the country time zone.
+    time_index_of_year_to_local_zone = time_index_of_year.tz_localize('UTC').tz_convert(country_timezone)
+
+    # Calculate the time shift between UTC and the country time zone.
+    hour_shift = general_utilities.calculate_hour_shift(country_info)
+
+    if method == 'hourly_dependent':
+
+        # From PyPSA-Eur / Atlite
+
+        intraday_profiles = pd.read_csv(settings.energy_data_directory+'/heat_load_profile_BDEW.csv', index_col=0)
+
+        # Create lists with the intraday profile (24 elements) of the heating demand for the given sector and use. The intraday profile is different for weekdays and weekends.
+        weekday = list(intraday_profiles[f'{sector} {use} weekday'])
+        weekend = list(intraday_profiles[f'{sector} {use} weekend'])
+
+        # Combine the intraday profiles of the heating demand for the given sector and use into a single weekly profile (24 x 7 elements). Then convert it to a pandas Series.
+        weekly_profile = weekday * 5 + weekend * 2
+        weekly_profile = pd.Series(weekly_profile, index=np.arange(24 * 7))
+
+        # Assign to each hour in the time index the corresponding number of the hour in the week (from 0 to 167, 12am Monday to 11pm Sunday).
+        hour_of_the_week = pd.Series(data=[24 * dt.weekday() + dt.hour for dt in time_index_of_year_to_local_zone], index=time_index_of_year)
+
+        # Map the hour of the week to the intraday profile of the heating demand.
+        hourly_intraday_profile  = hour_of_the_week.map(weekly_profile)
+    
+    elif method == 'hourly_and_temperature_dependent':
+        
+        # From https://doi.org/10.1038/s41597-019-0199-y
+
+        # Get the shape of the region of interest.
+        region_shape = geometry.get_geopandas_region(country_info)
+
+        # Get the temperature database for the given year and region.
+        temperature_time_series = climate_data.get_temperature_database(year, region_shape)['temperature']
+
+        # Aggregate the temperature time series by population density.
+        aggregated_temperature_time_series = general_utilities.aggregate_time_series(temperature_time_series, weights)
+
+        # Resample the temperature time series to daily mean values.
+        dayly_aggregated_temperature_time_series = aggregated_temperature_time_series.resample(time='D', offset=pd.Timedelta(hour_shift, 'h')).mean()
+
+        # Assign to each day a temperature class among the following: -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, where the temperature class is the closest multiple of 5 to the daily mean temperature.
+        temperature_class = (np.round((dayly_aggregated_temperature_time_series - 273.15).clip(-15, 30) / 5) * 5).astype(int).astype(str)
+
+        # Upsample the temperature class to hourly resolution.
+        temperature_class = temperature_class.reindex(time=time_index_of_year, method='ffill')
+
+        if sector == 'residential':
+
+            # Read the intraday profiles of the heating demand for the given country and for the residential sector.
+            intraday_profiles_SFH = pd.read_csv(settings.energy_data_directory+'/hourly_factors_SFH.csv', sep=';', decimal=',', index_col=0)
+            intraday_profiles_MFH = pd.read_csv(settings.energy_data_directory+'/hourly_factors_MFH.csv', sep=';', decimal=',', index_col=0)
+
+            # Average the intraday profiles of the single-family houses (SFH) and multi-family houses (MFH).
+            intraday_profiles = 0.5 * (intraday_profiles_SFH + intraday_profiles_MFH)
+
+            # Normalize each column of the intraday profiles of the heating demand.
+            intraday_profiles = intraday_profiles / intraday_profiles.mean()
+
+            # Reset the index of the intraday profiles.
+            intraday_profiles = intraday_profiles.set_index(np.arange(0, 24))
+
+            # Get the hour of the day.
+            hour_of_the_day = [dt.hour for dt in time_index_of_year_to_local_zone]
+        
+            # Create a pandas Series with the intraday profile of the heating demand for the given temperature class. This concatenates the intraday profiles of the heating demand for the different dayly temperature classes.
+            hourly_intraday_profile = pd.Series([intraday_profiles.loc[id1,id2] for id1, id2 in zip(hour_of_the_day, temperature_class.values)], index=time_index_of_year)
+        
+        elif sector == 'services':
+
+            # Read the intraday profiles of the heating demand for the given country and for the services sector.
+            intraday_profiles = pd.read_csv(settings.energy_data_directory+'/hourly_factors_COM.csv', sep=';', decimal=',', index_col=[0,1])
+
+            # Normalize each column of the intraday profiles of the heating demand.
+            intraday_profiles = intraday_profiles / intraday_profiles.mean()
+
+            # Reset the index of the intraday profiles. The index is a MultiIndex with day of week and hour of the day.
+            intraday_profiles = intraday_profiles.set_index(np.arange(0, 24 * 7))
+
+            # Get the hour of the week.
+            hour_of_the_week = [24 * dt.weekday() + dt.hour for dt in time_index_of_year_to_local_zone]
+
+            # Create a pandas Series with the intraday profile of the heating demand for the given temperature class and day of the week. This concatenates the intraday profiles of the heating demand for the different dayly temperature classes and days of the week.
+            hourly_intraday_profile = pd.Series([intraday_profiles.loc[id1,id2] for id1, id2 in zip(hour_of_the_week, temperature_class.values)], index=time_index_of_year)
+
+    return hourly_intraday_profile
+
+
+def get_hourly_heating_intraday_profile(country_info, year, method='hourly_dependent', weights=None):
     '''
     Get the intraday profile of the heating demand for the given country.
     
@@ -51,57 +175,29 @@ def get_hourly_heating_intraday_profile(country_info, year):
         Series containing the information of the country of interest
     year : int
         Year of interest
+    method : str
+        Method to calculate the intraday profile of the heating demand
+    weights : xarray.DataArray
+        Weights to aggregate the temperature time series
 
     Returns
     -------
     intraday_year_profiles : pandas.DataFrame
         Hourly intraday profile of the heating demand for the given country
     '''
-
-    # Create a pandas DatetimeIndex with the hours of the year.
-    time_index_of_year = pd.date_range(str(year), str(year+1), freq='h')[:-1]
-    
-    # Read the intraday profiles of the heating demand for the given country.
-    intraday_profiles = pd.read_csv(settings.energy_data_directory+'/heat_load_profile_BDEW.csv', index_col=0)
-
-    # Get the country time zone.
-    if country_info['Name'] == 'Kosovo':
-        country_timezone = pytz.timezone('Europe/Belgrade')
-    else:
-        country_timezone = pytz.timezone(pytz.country_timezones[country_info['ISO Alpha-2']][0])
     
     # Define the sectors and uses of the heating demand.
     sectors = ['residential', 'services']
     uses = ['space']
 
     # Create an empty xarray dataset to store the intraday profiles of the heating demand.
-    hourly_intraday_profiles = xr.Dataset(coords={'time': time_index_of_year})
+    hourly_intraday_profiles = xr.Dataset(coords={'time': pd.date_range(str(year), str(year+1), freq='h')[:-1]})
 
     for sector in sectors:
         for use in uses:
 
-            # Create lists with the intraday profile (24 elements) of the heating demand for the given sector and use. The intraday profile is different for weekdays and weekends.
-            weekday = list(intraday_profiles[f'{sector} {use} weekday'])
-            weekend = list(intraday_profiles[f'{sector} {use} weekend'])
-
-            # Combine the intraday profiles of the heating demand for the given sector and use into a single weekly profile (24 x 7 elements). Then convert it to a pandas Series.
-            weekly_profile = weekday * 5 + weekend * 2
-            weekly_profile = pd.Series(weekly_profile, range(24 * 7))
-            
-            # Extract the time periods, assign them the UTC time zone, and convert them to the country time zone.
-            time_index_of_year_to_local_zone = time_index_of_year.tz_localize('UTC').tz_convert(country_timezone)
-
-            # Assign to each hour in the time index the corresponding number of the hour in the week (from 0 to 167, 12am Monday to 11pm Sunday).
-            hour_of_the_week = pd.Series(data=[24 * dt.weekday() + dt.hour for dt in time_index_of_year_to_local_zone], index=time_index_of_year.tz_localize('UTC'))
-
-            # Map the hour of the week to the intraday profile of the heating demand.
-            hourly_intraday_profile  = hour_of_the_week.map(weekly_profile)
-
-            # Remove the time zone information from the time index.
-            hourly_intraday_profile  = hourly_intraday_profile.tz_localize(None)
-
-            # Add the intraday profile of the heating demand to the pandas DataFrame.
-            hourly_intraday_profiles[f'{sector}_{use}'] = hourly_intraday_profile.to_xarray().rename({'index': 'time'})
+            # Get the intraday profiles of the heating demand for the given country.
+            hourly_intraday_profiles[f'{sector}_{use}'] = get_intraday_heating_profile(country_info, year, sector, use, method=method, weights=weights).to_xarray()
     
     return hourly_intraday_profiles
 
@@ -161,7 +257,7 @@ def compute_aggregated_heating_demand(country_info):
         aggregated_daily_heating_demand_time_series_at_hourly_resolution = aggregated_daily_heating_demand_time_series.reindex(time=pd.date_range(str(year), str(year+1), freq='h')[:-1], method='ffill')
 
         # Read the intraday profiles of the heating demand for the given country.
-        hourly_intraday_profiles = get_hourly_heating_intraday_profile(country_info, year)
+        hourly_intraday_profiles = get_hourly_heating_intraday_profile(country_info, year, method='hourly_and_temperature_dependent', weights=weights)
 
         for sector_and_use in list(hourly_intraday_profiles.data_vars):
 

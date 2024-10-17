@@ -145,11 +145,14 @@ def exctact_available_cells_with_best_resource(region_shape, availability_matrix
     resource_availability = climate_data.get_regional_resource_availability(resource_type)
     
     # Clean the availability matrixes.
-    cells_with_availability_factor = availability_matrix.sel(name=region_shape.index[0]).drop('name').rename('Availability factor')
-    cells_belonging_to_region = region_matrix.sel(name=region_shape.index[0]).drop('name').rename('Region')
+    cells_with_availability_factor = availability_matrix.sel(name=region_shape.index[0]).drop_vars('name').rename('Availability factor')
+    cells_belonging_to_region = region_matrix.sel(name=region_shape.index[0]).drop_vars('name').rename('Region')
     
+    # Calculate the spatial resolution of the grid cells.
+    spatial_resolution = float(resource_availability['x'].diff('x').mean())
+
     # Calculate the grid cell areas and clip their spatial extent to the bounding box of the country of interest.
-    cell_areas = geometry.get_grid_cell_area()
+    cell_areas = geometry.get_grid_cell_area(resolution=spatial_resolution)
     regional_cell_areas = cell_areas.sel(x=slice(availability_matrix.x.min(),availability_matrix.x.max()),y=slice(availability_matrix.y.min(),availability_matrix.y.max()))
     
     # Clip the cells with resource availability to the bounding box of the country of interest and set them to zero where the cells do not belong to the region of interest.
@@ -170,7 +173,7 @@ def exctact_available_cells_with_best_resource(region_shape, availability_matrix
         while fraction_of_surface_available_with_best_resource < 0.25:
 
             # Set to 0 the cells that are not in top 25% best resource in the available land. Then set to 1 the cells that are not 0.
-            cells_with_best_resource = regional_resource_availability.resource_availability.where(regional_resource_availability.resource_availability>regional_resource_availability.resource_availability.quantile(1-fraction_of_surface_with_best_resource).values, 0)
+            cells_with_best_resource = regional_resource_availability.where(regional_resource_availability>regional_resource_availability.quantile(1-fraction_of_surface_with_best_resource).values, 0)
             cells_with_best_resource = cells_with_best_resource.where(cells_with_best_resource==0, 1)
 
             # Calculate the fraction of surface available with best resource.

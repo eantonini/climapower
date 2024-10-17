@@ -33,13 +33,14 @@ def get_wind_database(year, region_shape):
         # Load the climate data for the given year and region.
         [ds_u100, ds_v100, ds_fsr] = climate_utilities.load_climate_data(year, region_shape, variable_names)
         
-        # Merge the datasets.     
+        # Merge the datasets.
         ds = xr.merge([ds_u100, ds_v100, ds_fsr])
         
         # Rename variables and clean coordinates to match the atlite convention.
         ds = climate_utilities.rename_and_clean_coords(ds)
         ds['wnd100m'] = np.sqrt(ds['u100'] ** 2 + ds['v100'] ** 2).assign_attrs(units=ds['u100'].attrs['units'])
         ds = ds.drop_vars(['u100', 'v100'])
+        ds = ds.rename({'fsr': 'roughness'})
 
     elif settings.climate_data_source == 'CORDEX_projections':
 
@@ -47,21 +48,33 @@ def get_wind_database(year, region_shape):
         variable_names = ['10m_wind_speed', 'forecast_surface_roughness']
 
         # Load the climate data for the given year and region.
-        [ds_ws10, ds_r] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
+        [ds_ws10, ds_r] = climate_utilities.load_climate_data(year, region_shape, variable_names)
         
         # Harmonize the data to hourly resolution and merge the datasets.
         ds = climate_utilities.harmonize_cordex_data([ds_ws10, ds_r], year, '3 hours')
         
         # Rename variables and clean coordinates to match the atlite convention.
         ds = climate_utilities.rename_and_clean_coords(ds)
-        ds = ds.rename({'10m_wind_speed': 'wnd10m'})
+        ds = ds.rename({'10m_wind_speed': 'wnd10m', 'fsr': 'roughness'})
+    
+    elif settings.climate_data_source == 'CMIP6_projections':
+
+        # Define the name of the variables to load.
+        variable_names = ['near_surface_wind_speed', 'forecast_surface_roughness']
+
+        # Load the climate data for the given year and region.
+        [ds_ws10, ds_r] = climate_utilities.load_climate_data(year, region_shape, variable_names)
+
+        # Merge the datasets.
+        ds = xr.merge([ds_ws10, ds_r])
+
+        # Rename variables and clean coordinates to match the atlite convention.
+        ds = climate_utilities.rename_and_clean_coords(ds)
+        ds = ds.rename({'sfcWind': 'wnd10m', 'Mean forecast surface roughness': 'roughness'})
     
     else:
         
         raise AssertionError('The climate data source is not valid.')
-    
-    # Rename variable to match the atlite convention.
-    ds = ds.rename({'fsr': 'roughness'})
     
     return ds
 
@@ -121,7 +134,7 @@ def get_solar_database(year, region_shape):
         variable_names = ['surface_solar_radiation_downwards', 'surface_upwelling_shortwave_radiation', '2m_air_temperature', 'toa_incident_solar_radiation']
 
         # Load the climate data for the given year and region.
-        [ds_rsds, ds_rsus, ds_tas, ds_tisr] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
+        [ds_rsds, ds_rsus, ds_tas, ds_tisr] = climate_utilities.load_climate_data(year, region_shape, variable_names)
 
         # Drop the height coordinate.
         ds_tas = ds_tas.drop_vars('height')
@@ -143,6 +156,21 @@ def get_solar_database(year, region_shape):
         # Rename variables and clean coordinates to match the atlite convention.
         ds = climate_utilities.rename_and_clean_coords(ds)
         ds = ds.rename({'surface_solar_radiation_downwards': 'influx', 'surface_upwelling_shortwave_radiation': 'outflux', 'tisr': 'influx_toa', '2m_air_temperature': 'temperature'})
+    
+    elif settings.climate_data_source == 'CMIP6_projections':
+
+        # Define the name of the variables to load.
+        variable_names = ['surface_downwelling_shortwave_radiation', 'surface_upwelling_shortwave_radiation', 'toa_incident_shortwave_radiation', 'near_surface_air_temperature']
+
+        # Load the climate data for the given year and region.
+        [ds_rsds, ds_rsus, ds_rsdt, ds_tas] = climate_utilities.load_climate_data(year, region_shape, variable_names)
+
+        # Merge the datasets.
+        ds = xr.merge([ds_rsds, ds_rsus, ds_rsdt, ds_tas])
+
+        # Rename variables and clean coordinates to match the atlite convention.
+        ds = climate_utilities.rename_and_clean_coords(ds)
+        ds = ds.rename({'rsds': 'influx', 'rsus': 'outflux', 'rsdt': 'influx_toa', 'tas': 'temperature'})
     
     else:
         
@@ -199,7 +227,7 @@ def get_temperature_database(year, region_shape):
         variable_names = ['2m_air_temperature']
 
         # Load the climate data for the given year and region.
-        [ds_tas] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
+        [ds_tas] = climate_utilities.load_climate_data(year, region_shape, variable_names)
         
         # Drop the height coordinate.
         ds_tas = ds_tas.drop_vars('height')
@@ -256,7 +284,7 @@ def get_hydro_database(year, region_shape):
         variable_names = ['total_run_off_flux', 'height']
 
         # Load the climate data for the given year and region.
-        [ds_ro, ds_z] = climate_utilities.load_climate_data(year, region_shape, variable_names, CORDEX_data=True)
+        [ds_ro, ds_z] = climate_utilities.load_climate_data(year, region_shape, variable_names)
         
         # Harmonize the data to hourly resolution and merge the datasets.
         ds = climate_utilities.harmonize_cordex_data([ds_ro, ds_z], year, '6 hours')
@@ -289,29 +317,22 @@ def get_regional_resource_availability(resource_type):
     
     # Define the targe resource name and the variable of the loaded dataset to rename.
     if resource_type == 'wind':
-
         resource = '100m_wind_power_density'
-        variable_to_rename = '__xarray_dataarray_variable__'
-
     elif resource_type == 'solar':
-
         resource = 'surface_solar_radiation_downwards'
-        variable_to_rename = 'ssrd'
-    
     else:
-
         raise AssertionError('Resource type not recognized or implemented')
     
     # Read the resource availability path.
     resource_path = directories.get_mean_climate_data_path(resource)
     
     # Read the resource availability dataset.
-    resource_availability = xr.open_dataset(resource_path, engine='netcdf4')
+    resource_availability = xr.open_dataarray(resource_path, engine='netcdf4')
+
+    # Rename variables and clean coordinates to match the atlite convention.
+    resource_availability = climate_utilities.rename_and_clean_coords(resource_availability)
 
     # Rename variables to match the atlite convention and the rest of the code.
-    resource_availability = resource_availability.rename({variable_to_rename: 'resource_availability', 'longitude': 'x', 'latitude': 'y'})
-
-    # Reverse the latitude dimension to match the atlite convention. 
-    resource_availability = resource_availability.reindex(y=list(reversed(resource_availability.y)))
+    resource_availability = resource_availability.rename('resource_availability')
     
     return resource_availability

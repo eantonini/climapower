@@ -26,7 +26,7 @@ if save_plots:
         os.mkdir(figure_folder)
 
 # Define the climate data source.
-climate_data_source = 'CORDEX_projections' # 'reanalysis' or 'CORDEX_projections' or 'CMIP6_projections
+climate_data_source = 'reanalysis' # 'reanalysis' or 'CORDEX_projections' or 'CMIP6_projections
 
 # Set the years over which to aggregate climate data.
 if climate_data_source == 'reanalysis':
@@ -52,7 +52,7 @@ elif climate_data_source == 'CORDEX_projections':
 
 elif climate_data_source == 'CMIP6_projections':
 
-    data_product = 'World'
+    focus_region = 'World'
     data_product = 'CMIP6'
     aggregation_start_year = 2015
     aggregation_end_year = 2100
@@ -60,7 +60,7 @@ elif climate_data_source == 'CMIP6_projections':
     # Define the CMIP6 experiment and models.
     CMIP6_experiment_and_model = {
         'shared_socioeconomic_pathway' : 'ssp1_2_6', # 'ssp1_2_6' or 'ssp2_4_5' or 'ssp5_8_5'
-        'climate_model' : 'mpi_esm1_2_lr' # 'mpi_esm1_2_lr' or 'cmcc_esm2' or 'cesm2' or 'hadgem3_gc31_mm' or 'bcc_csm2_mr'
+        'climate_model' : 'hadgem3_gc31_ll' # 'mpi_esm1_2_lr' or 'cmcc_esm2' or 'cesm2' or 'hadgem3_gc31_ll' or 'bcc_csm2_mr'
     }
 
 # Set the chunk size for the climate data.
@@ -84,14 +84,14 @@ if calibrate:
 # Settings for wind resource.
 offshore_wind_turbine = 'IEA_10MW_198_RWT.yaml'
 onshore_wind_turbine = 'IEA_3.4MW_130_RWT.yaml'
-read_wind_coefficients = True
+read_wind_coefficients = False
 
 # Settings for solar resource.
 solar_panel = 'CSi'
-read_solar_coefficients = True
+read_solar_coefficients = False
 
 # Settings for hydropower resource.
-read_hydropower_coefficients = True
+read_hydropower_coefficients = False
 
 # Settings for heating demand.
 heating_daily_temperature_threshold = 15.0

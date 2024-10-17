@@ -49,6 +49,14 @@ def maybe_swap_spatial_dims(ds, namex='x', namey='y'):
     return ds
 
 
+
+    
+    if ds['x'].min() < 0:
+        ds = ds.assign_coords(x=(ds['x'] + 180) % 360 - 180)
+
+    return ds
+
+
 def rename_and_clean_coords(ds):
     '''
     Rename 'longitude' and 'latitude' coordinates to 'x' and 'y' and fix roundings.
@@ -65,7 +73,10 @@ def rename_and_clean_coords(ds):
     '''
     
     # Rename longitude and latitude coordinates to x and y coordinates.
-    ds = ds.rename({'longitude': 'x', 'latitude': 'y'})
+    if 'longitude' in ds.coords and 'latitude' in ds.coords:
+        ds = ds.rename({'longitude': 'x', 'latitude': 'y'})
+    elif 'lon' in ds.coords and 'lat' in ds.coords:
+        ds = ds.rename({'lon': 'x', 'lat': 'y'})
 
     # Round coords since original coordinates are float32, which would lead to mismatches.
     ds = ds.assign_coords(x=np.round(ds.x.astype(float), 5), y=np.round(ds.y.astype(float), 5))
@@ -73,8 +84,12 @@ def rename_and_clean_coords(ds):
     # Swap spatial dimensions if necessary.
     ds = maybe_swap_spatial_dims(ds)
 
+    # Reset longitudes from the range [0, 360] to [-180, 180].
+    if ds['x'].min() == 0:
+        ds = ds.assign_coords(x=(ds['x'] + 179.99) % 360 - 179.99).sortby('x')
+
     # Keep original longitude and latitude coordinates.
-    ds = ds.assign_coords(lon=ds.coords["x"], lat=ds.coords["y"])
+    ds = ds.assign_coords(lon=ds.coords['x'], lat=ds.coords['y'])
 
     return ds
 
@@ -101,10 +116,16 @@ def clip_to_region_containing_box(ds, region_shape):
     
     # Clip the dataset to the region containing box.
     if 'x' in ds.coords and 'y' in ds.coords:
-        ds = ds.sel(x=slice(region_bounds[0],region_bounds[2]), y=slice(region_bounds[3], region_bounds[1]))
+        if ds['y'].diff('y').mean() > 0:
+            ds = ds.sel(x=slice(region_bounds[0],region_bounds[2]), y=slice(region_bounds[1], region_bounds[3]))
+        else:
+            ds = ds.sel(x=slice(region_bounds[0],region_bounds[2]), y=slice(region_bounds[3], region_bounds[1]))
     
     elif 'longitude' in ds.coords and 'latitude' in ds.coords:
-        ds = ds.sel(longitude=slice(region_bounds[0],region_bounds[2]), latitude=slice(region_bounds[3], region_bounds[1]))
+        if ds['latitude'].diff('latitude').mean() > 0:
+            ds = ds.sel(longitude=slice(region_bounds[0],region_bounds[2]), latitude=slice(region_bounds[1], region_bounds[3]))
+        else:
+            ds = ds.sel(longitude=slice(region_bounds[0],region_bounds[2]), latitude=slice(region_bounds[3], region_bounds[1]))
 
     return ds
 
@@ -261,7 +282,7 @@ def convert_solar_energy_to_power(variable_datasets):
     return converted_variable_datasets
 
 
-def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
+def load_climate_data(year, region_shape, variable_names):
     '''
     Load climate data for a given year and region.
     
@@ -273,8 +294,6 @@ def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
         Geopandas dataframe containing the shape of the region of interest
     variable_names : list of str
         List of variable names of interest
-    CORDEX_data : bool, optional
-        True if the data is CORDEX data, by default False
 
     Returns
     -------
@@ -289,25 +308,42 @@ def load_climate_data(year, region_shape, variable_names, CORDEX_data=False):
     for variable_name in variable_names:
 
         if variable_name == 'height':
-            variable_dataset = xr.open_dataarray(settings.climate_data_directory+'/'+'Europe__ERA5__surface_geopotential.nc', chunks=settings.chunk_size_lon_lat)
+            variable_dataset = xr.open_dataarray(settings.climate_data_directory+'/' + settings.focus_region + '__ERA5__surface_geopotential.nc', chunks=settings.chunk_size_lon_lat)
             variable_dataset = variable_dataset/9.80665
-
-        elif CORDEX_data:
-
-            if variable_name == 'toa_incident_solar_radiation':
-                variable_dataset = xr.open_dataarray(directories.get_tisr_path_for_cordex(year), chunks=settings.chunk_size_lon_lat)
-        
-            elif variable_name == 'forecast_surface_roughness':
-                variable_dataset = xr.open_dataarray(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
-        
-            elif variable_name == 'total_run_off_flux':
-                variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='6hourly'), chunks=settings.chunk_size_lon_lat)
-        
-            else:
-                variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='3hourly'), chunks=settings.chunk_size_lon_lat)
         
         else:
-            variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name), chunks=settings.chunk_size_lon_lat)
+
+            if settings.climate_data_source == 'reanalysis':
+                
+                variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name), chunks=settings.chunk_size_lon_lat)
+
+            elif settings.climate_data_source == 'CORDEX_projections':
+
+                if variable_name == 'toa_incident_solar_radiation':
+                    variable_dataset = xr.open_dataarray(directories.get_tisr_path_for_cordex(year), chunks=settings.chunk_size_lon_lat)
+            
+                elif variable_name == 'forecast_surface_roughness':
+                    variable_dataset = xr.open_dataarray(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
+            
+                elif variable_name == 'total_run_off_flux':
+                    variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='6hourly'), chunks=settings.chunk_size_lon_lat)
+            
+                else:
+                    variable_dataset = xr.open_dataarray(directories.get_climate_data_path(year, variable_name, time_resolution='3hourly'), chunks=settings.chunk_size_lon_lat)
+            
+            elif settings.climate_data_source == 'CMIP6_projections':
+
+                if variable_name == 'forecast_surface_roughness':
+                    variable_dataset = xr.open_dataarray(directories.get_mean_climate_data_path('forecast_surface_roughness'), chunks=settings.chunk_size_lon_lat)
+                
+                else:
+                    if variable_name == 'near_surface_wind_speed':
+                        variable_dataset = xr.open_dataarray(directories.get_climate_data_path('2015_2100', variable_name, time_resolution='daily'), chunks=settings.chunk_size_lon_lat)
+
+                    else:
+                        variable_dataset = xr.open_dataarray(directories.get_climate_data_path('2015_2100', variable_name, time_resolution='monthly'), chunks=settings.chunk_size_lon_lat)
+                    
+                    variable_dataset = variable_dataset.loc[variable_dataset['time'].dt.year == year]
         
         # Check if the time coordinate has dtype equal to datetime64
         if 'time' in variable_dataset.dims:

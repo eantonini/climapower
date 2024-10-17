@@ -2,6 +2,10 @@
 
 This repository contains scripts to generate weather- and climate-driven power supply and demand time series for power and energy system analyses.
 
+The methodology is described in the following paper:
+
+> **Title**: "Climapower: A Python package for generating weather- and climate-driven power supply and demand time series for power and energy system analyses
+
 ## Installation
 
 To install the package, clone the repository and install the Python packages available in the yaml files in the `environments` folder:
@@ -79,4 +83,30 @@ These scripts will generate time series for wind power, solar power, hydro power
 
 ```bash
 python get_wind_resource.py "Germany"
+```
+
+### Calibrate energy time series
+
+To calibrate the energy time series, you need to activate the environment for calibrating energy time series:
+
+```bash
+conda activate climate_to_energy_conversion
+```
+
+Then, you can run the script to calibrate the data:
+
+```bash
+python calibrate_wind_resource.py
+```
+
+or
+
+```bash
+python calibrate_solar_resource.py
+```
+
+or
+
+```bash
+python calibrate_hydro_resource.py
 ```

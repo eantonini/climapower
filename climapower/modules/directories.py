@@ -9,7 +9,7 @@ def get_climate_data_path(year, variable_name, return_folder=False, time_resolut
 
     Parameters
     ----------
-    year : int
+    year : int or str
         Year of interest
     variable_name : str
         Name of the variable of interest
@@ -116,7 +116,10 @@ def get_climate_data_path(year, variable_name, return_folder=False, time_resolut
         return climate_data_path
 
     # Add the filename to the full folder path.
-    climate_data_path += '{:d}__'.format(year) + time_resolution + '_' + variable_name + '.nc'
+    if isinstance(year, int):
+        climate_data_path += '{:d}__'.format(year) + time_resolution + '_' + variable_name + '.nc'
+    elif isinstance(year, str):
+        climate_data_path += year + '__' + time_resolution + '_' + variable_name + '.nc'
     
     return climate_data_path
 
@@ -137,8 +140,7 @@ def get_mean_climate_data_path(variable_name):
     '''
     
     mean_climate_data_path = (settings.climate_data_directory + '/' +
-                              settings.focus_region + '__' +
-                              settings.data_product + '__' +
+                              settings.focus_region + '__ERA5__' +
                               '{:d}_'.format(settings.start_year_for_mean_climate_variable) +
                               '{:d}'.format(settings.end_year_for_mean_climate_variable) + '__' +
                               'mean_' + variable_name + '.nc')
@@ -167,8 +169,7 @@ def get_tisr_path_for_cordex(year):
     
     
     tisr_path_for_cordex = (settings.climate_data_directory + '/' +
-                            settings.focus_region + '__' +
-                            settings.data_product + '__')
+                            settings.focus_region + '__ERA5__')
     
     if isleap(year):
         tisr_path_for_cordex += 'toa_incident_solar_radiation_in_leap_year.nc'
