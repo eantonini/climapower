@@ -9,7 +9,7 @@ import modules.energy_utilities as energy_utilities
 
 
 # Define the ENTSO-E API key.
-ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+ENTSOE_API_KEY = 'your-api-key'
 
 
 def get_entsoe_demand(country_info, year, start=None, end=None, remove_outliers=True, add_all_missing_timesteps=True):
