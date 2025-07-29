@@ -13,7 +13,7 @@ import modules.energy_utilities as energy_utilities
 
 
 # Define the ENTSO-E API key.
-ENTSOE_API_KEY = '5c0f2faa-fde8-43fa-9b70-c89b4f37b868'
+ENTSOE_API_KEY = 'your-api-key'
 
 
 def get_entsoe_generation(country_info, year, generation_code, start=None, end=None, linearly_interpolate=True, remove_outliers=True, add_all_missing_timesteps=True, hydro_pumped_storage_consumption=False):
